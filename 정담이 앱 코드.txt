@@ -1,0 +1,2798 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>정담이(Jeongdami) · 추억 회상 & 돌봄 웹 프로토타입</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import
+url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;
+800&display=swap');
+
+
+    :root {
+        --bg-cream: #FAF7F2;
+        --bg-card: #FFFFFF;
+        --text-main: #1F2937;
+        --text-muted: #4B5563;
+        --sage: #2E7D5B;
+        --sage-dark: #1E5A40;
+        --sage-light: #EAF5EF;
+        --orange: #E06D3B;
+        --orange-dark: #B85226;
+        --orange-light: #FFF1EA;
+        --border-soft: #E5DEC9;
+    }
+
+
+    * {
+        box-sizing: border-box;
+        font-family:   'Noto       Sans   KR',   -apple-system,   BlinkMacSystemFont,
+sans-serif;
+    }
+
+
+    body {
+        margin: 0;
+        background-color: var(--bg-cream);
+        color: var(--text-main);
+        font-size: 19px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+}
+
+
+.senior-card {
+    background: var(--bg-card);
+    border: 2px solid var(--border-soft);
+    border-radius: 24px;
+    box-shadow: 0 8px 24px rgba(31, 41, 55, 0.05);
+}
+
+
+.btn-primary {
+    background-color: var(--sage);
+    color: #FFFFFF;
+    font-weight: 700;
+    border-radius: 18px;
+    transition: transform 0.12s ease, background-color 0.15s ease;
+    cursor: pointer;
+}
+.btn-primary:hover:not(:disabled) {
+    background-color: var(--sage-dark);
+    transform: translateY(-1px);
+}
+.btn-primary:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+
+.btn-warm {
+    background-color: var(--orange);
+    color: #FFFFFF;
+    font-weight: 700;
+    border-radius: 18px;
+    transition: transform 0.12s ease, background-color 0.15s ease;
+    cursor: pointer;
+}
+.btn-warm:hover:not(:disabled) {
+    background-color: var(--orange-dark);
+    transform: translateY(-1px);
+}
+.btn-warm:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+
+.btn-secondary {
+    background-color: #FFFFFF;
+    color: var(--text-main);
+    border: 2px solid #CBD5E1;
+    font-weight: 700;
+    border-radius: 18px;
+    transition: transform 0.12s ease, background-color 0.15s ease;
+    cursor: pointer;
+}
+.btn-secondary:hover:not(:disabled) {
+    background-color: #F8FAFC;
+    transform: translateY(-1px);
+}
+
+
+.nav-tab {
+    border-radius: 16px;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 12px 18px;
+    border: 2px solid transparent;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.nav-tab.active {
+    background-color: var(--sage);
+    color: #FFFFFF;
+    border-color: var(--sage-dark);
+}
+.nav-tab:not(.active) {
+    background-color: #FFFFFF;
+    color: var(--text-main);
+    border-color: var(--border-soft);
+}
+.nav-tab:not(.active):hover {
+    border-color: var(--sage);
+}
+
+
+/* 마이크 파형 애니메이션 */
+@keyframes waveBounce {
+    0%, 100% {
+        transform: scaleY(0.28);
+    }
+    50% {
+        transform: scaleY(1);
+    }
+}
+
+
+.wave-bar {
+    width: 6px;
+    height: 36px;
+    border-radius: 999px;
+    background-color: var(--orange);
+    transform-origin: center;
+    animation: waveBounce 0.9s ease-in-out infinite;
+}
+
+
+.wave-bar.paused {
+    animation: none;
+    transform: scaleY(0.28);
+    background-color: #9CA3AF;
+}
+
+
+@keyframes pulseRing {
+    0% {
+        box-shadow: 0 0 0 0 rgba(224, 109, 59, 0.45);
+        }
+        70% {
+            box-shadow: 0 0 0 18px rgba(224, 109, 59, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(224, 109, 59, 0);
+        }
+    }
+
+
+    .mic-active-ring {
+        animation: pulseRing 1.7s infinite;
+    }
+
+
+    /* 커스텀 스크롤바 */
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+    ::-webkit-scrollbar-track {
+        background: #F1ECE1;
+        border-radius: 999px;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #C5B9A5;
+        border-radius: 999px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="min-h-screen flex flex-col">
+    <!-- 상단 비진단 고지 및 응급·상담 안내 바 -->
+    <div      class="bg-amber-50       border-b-2    border-amber-200       px-4   py-3
+text-amber-950">
+        <div class="max-w-6xl mx-auto flex flex-col lg:flex-row lg:items-center
+lg:justify-between gap-2 text-base font-medium">
+            <div class="flex items-start sm:items-center gap-2">
+              <span   class="inline-flex   items-center   justify-center   bg-amber-600
+text-white text-sm font-extrabold px-2.5 py-0.5 rounded-full shrink-0">
+               비진단 참고 안내
+             </span>
+             <span>
+               본 서비스는 의료기기나 임상 진단 시스템이 아니며 질환·인지기능·응급도
+를 판정하지 않습니다.
+             </span>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 text-sm sm:text-base
+font-bold text-amber-900">
+             <span      class="bg-white/90     border    border-amber-300    px-3   py-1
+rounded-xl">
+               치매상담콜센터 1899-9988
+             </span>
+             <span      class="bg-white/90     border    border-amber-300    px-3   py-1
+rounded-xl">
+               응급 시 119 · 보건소/치매안심센터 연계
+             </span>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- 메인 헤더 및 탭 내비게이션 -->
+    <header class="bg-white/95 backdrop-blur border-b-2 border-[#E5DEC9]
+sticky top-0 z-30">
+      <div     class="max-w-6xl         mx-auto px-4    py-4 flex flex-col   md:flex-row
+md:items-center md:justify-between gap-4">
+        <div class="flex items-center justify-between">
+             <button onclick="navigateTo('home')" class="flex items-center gap-3
+text-left cursor-pointer group">
+               <div class="w-12 h-12 rounded-2xl bg-[#2E7D5B] text-white flex
+items-center           justify-center       text-2xl     font-extrabold      shadow-sm
+group-hover:bg-[#1E5A40] transition">
+                 정
+               </div>
+               <div>
+                 <div class="flex items-center gap-2">
+                      <span        class="text-2xl      font-extrabold          tracking-tight
+text-gray-900">정담이</span>
+                      <span     class="text-xs   font-bold    px-2.5   py-0.5    rounded-full
+bg-[#EAF5EF] text-[#1E5A40] border border-[#B8DEC9]">
+                         추억 회상·돌봄
+                      </span>
+                    </div>
+                    <p class="text-sm text-gray-600 font-medium">어르신 회상 대화 &
+보호자 안심 요약</p>
+               </div>
+             </button>
+
+
+             <!-- 모바일 API/Fallback 빠른 뱃지 -->
+             <div class="md:hidden">
+               <button        onclick="openSettingsModal()"      class="text-sm     font-bold
+px-3 py-2 rounded-xl border-2 border-[#E5DEC9] bg-[#FAF7F2]">
+                    설정
+               </button>
+             </div>
+           </div>
+
+
+           <nav class="flex flex-wrap items-center gap-2" aria-label="주요 화면 이
+동">
+             <button id="tab-home" onclick="navigateTo('home')" class="nav-tab
+active">
+               1. 어르신 홈·동의
+             </button>
+             <button               id="tab-photo"             onclick="navigateTo('photo')"
+class="nav-tab">
+               2. 추억 사진 선택
+             </button>
+             <button             id="tab-session"            onclick="navigateTo('session')"
+class="nav-tab">
+               3. 회상·건강 대화
+             </button>
+             <button            id="tab-summary"         onclick="navigateTo('summary')"
+class="nav-tab">
+               4. 활동 요약·기록
+             </button>
+             <button        id="tab-caregiver"       onclick="navigateTo('caregiver')"
+class="nav-tab">
+               5. 보호자 요약
+             </button>
+             <button onclick="openSettingsModal()" class="hidden md:inline-flex
+nav-tab bg-stone-100 text-stone-700 border-stone-300">
+               AI/데이터 설정
+             </button>
+        </nav>
+      </div>
+    </header>
+
+
+    <!-- 알림 토스트 영역 -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col
+gap-2 max-w-md w-full px-4 sm:px-0 pointer-events-none"></div>
+
+
+    <!-- 동적 메인 콘텐츠 영역 -->
+    <main id="main-content" class="flex-1 max-w-6xl w-full mx-auto px-4
+py-7"></main>
+
+
+    <!-- 하단 푸터 -->
+    <footer class="bg-white border-t-2 border-[#E5DEC9] py-6 px-4 mt-10">
+      <div     class="max-w-6xl    mx-auto   flex   flex-col   sm:flex-row   items-start
+sm:items-center justify-between gap-3 text-sm text-gray-600">
+        <div>
+             <span class="font-bold text-gray-800">정담이(Jeongdami)</span> · 기
+억배달부 해커톤 웹 프로토타입 (비진단·비의료 참고 서비스)
+        </div>
+        <div class="flex flex-wrap items-center gap-4">
+             <span>상태: <strong id="footer-ai-mode" class="text-[#2E7D5B]">내장
+AI + Fallback 준비됨</strong></span>
+             <button     onclick="openSettingsModal()"    class="underline    font-bold
+text-gray-800 hover:text-[#2E7D5B] cursor-pointer">
+               Gemini API 키 & 장애 시뮬레이션
+             </button>
+           </div>
+         </div>
+    </footer>
+  </div>
+
+
+  <!-- AI API 키 & Fallback 시뮬레이션 모달 -->
+  <div     id="settings-modal"      class="fixed    inset-0   z-50   hidden   bg-black/50
+backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-[#E5DEC9] rounded-3xl max-w-xl
+w-full p-6 sm:p-7 shadow-2xl space-y-5">
+         <div class="flex items-center justify-between border-b border-gray-200
+pb-3">
+           <h2 class="text-2xl font-extrabold text-gray-900">AI 연결 및 시연 모드
+설정</h2>
+           <button           onclick="closeSettingsModal()"          class="text-gray-500
+hover:text-gray-900 text-2xl font-bold px-2 cursor-pointer">✕</button>
+         </div>
+
+
+         <div class="space-y-4 text-base">
+           <div class="p-4 rounded-2xl bg-[#FAF7F2] border border-[#E5DEC9]
+space-y-2">
+             <label class="block font-bold text-gray-900">Gemini API Key (선택 ·
+미입력 시 내장 AI/Fallback 동작)</label>
+             <input
+                  id="input-gemini-key"
+                  type="password"
+                  placeholder="AIza..."
+                  class="w-full   px-4    py-3   rounded-xl   border-2   border-gray-300
+bg-white text-base focus:outline-none focus:border-[#2E7D5B]"
+             />
+             <p class="text-sm text-gray-600">
+                  브라우저 로컬 저장소에만 보관되며, API 호출 실패·지연 또는 장애 시뮬
+레이션 활성화 시 즉시 안전 Fallback 질문·요약으로 전환됩니다.
+             </p>
+           </div>
+
+
+           <div class="p-4 rounded-2xl bg-orange-50 border-2 border-orange-200
+flex items-center justify-between gap-4">
+            <div>
+               <div class="font-bold text-orange-950">AI 장애 / Fallback 강제 전환
+시뮬레이션</div>
+               <div class="text-sm text-orange-900">발표 시연 중 AI 연결이 끊겨도
+Fallback으로 완주하는 장면을 보여줄 때 켜세요.</div>
+            </div>
+            <input   id="toggle-force-fallback"    type="checkbox"   class="w-6   h-6
+accent-[#E06D3B] cursor-pointer" />
+        </div>
+
+
+        <div class="p-4 rounded-2xl bg-stone-50 border border-stone-200 flex
+flex-wrap items-center justify-between gap-3">
+            <div class="text-sm text-gray-700">
+               현재 저장된 세션: <strong id="modal-session-count">0개</strong>
+            </div>
+            <div class="flex items-center gap-2">
+               <button onclick="seedDemoSessions()" class="px-4 py-2 rounded-xl
+bg-white     border-2      border-[#2E7D5B]   text-[#1E5A40]     font-bold   text-sm
+hover:bg-[#EAF5EF] cursor-pointer">
+                 시연용 샘플 기록 2건 추가
+               </button>
+               <button onclick="clearAllLocalData()" class="px-4 py-2 rounded-xl
+bg-red-50      border-2      border-red-200       text-red-700   font-bold   text-sm
+hover:bg-red-100 cursor-pointer">
+                 전체 기록 초기화
+               </button>
+            </div>
+        </div>
+      </div>
+
+
+      <div class="flex justify-end gap-3 pt-2">
+        <button onclick="closeSettingsModal()" class="btn-secondary px-5 py-3
+text-base">닫기</button>
+        <button      onclick="saveSettingsFromModal()"      class="btn-primary    px-6
+py-3 text-base">설정 저장</button>
+      </div>
+   </div>
+ </div>
+
+
+ <script>
+   //
+===========================================================
+==============
+   // 1. 상수 및 사실적 필름 톤 추억 사진 카탈로그 (HTML5 Canvas 렌더링)
+   //
+===========================================================
+==============
+   const STORAGE_KEY = 'jeongdami_prototype_v1';
+   const CONSENT_DOC_VERSION = 'v1.0-2026';
+
+
+   const SAMPLE_PHOTOS = [
+        {
+             id: 'sample_sea_sunset',
+             title: '바닷가 노을 산책',
+             caption: '황금빛 노을이 내려앉은 고요한 바닷가 백사장과 잔잔한 파도',
+             tag: '추억 사진 1 · 바다',
+             starterQuestion: '어르신, 이 노을 지는 바닷가 사진을 보니 어떤 기억이나
+마음이 가장 먼저 떠오르시나요?',
+             followUps: [
+                 '그 바닷가에서 들리던 파도 소리나 바람 느낌은 어떠셨나요?',
+                 '그때 함께했던 시간 중 지금도 가장 따뜻하게 남는 장면이 있으신가요?'
+             ]
+        },
+        {
+             id: 'sample_spring_blossom',
+             title: '봄날 벚꽃길',
+             caption: '따뜻한 햇살 아래 하얀 꽃잎이 흩날리는 동네 산책길',
+             tag: '추억 사진 2 · 봄나들이',
+             starterQuestion: '어르신, 봄꽃이 활짝 핀 이 길을 바라보시니 어떤 날의 기
+억이 스쳐 지나가시나요?',
+             followUps: [
+                 '봄바람이 불던 그날의 공기나 주변 풍경은 어떻게 기억나시나요?',
+                 '꽃길을 걸으실 때 기분이 어떠셨는지 편하게 들려주세요.'
+            ]
+       },
+       {
+            id: 'sample_village_persimmon',
+            title: '시골 감나무와 장독대',
+            caption: '햇볕 잘 드는 마당의 감나무와 단정한 옹기 장독대 풍경',
+            tag: '추억 사진 3 · 고향 마당',
+            starterQuestion: '어르신, 햇살 드는 마당과 장독대 사진을 보시니 옛집이나
+고향 생각이 나시나요?',
+            followUps: [
+                '마당에서 보내던 일상 중 특별히 정겹게 기억나는 순간이 있으신가요?',
+                '그 시절 아침이나 저녁 풍경에서 떠오르는 소리가 있을까요?'
+            ]
+       },
+       {
+            id: 'sample_holiday_table',
+            title: '명절 가족 상차림',
+            caption: '정성스럽게 차려진 따뜻한 밥상과 촛불·찻잔이 놓인 가족 자리',
+            tag: '추억 사진 4 · 따뜻한 밥상',
+            starterQuestion: '어르신, 정갈하게 차려진 이 상차림 사진을 보니 반가운 기
+억이 떠오르시나요?',
+            followUps: [
+                '따뜻한 음식을 나누던 날 중 가장 기분 좋았던 기억이 있으신가요?',
+                '그때 나눈 이야기나 웃음소리 중에서 기억나는 게 있으실까요?'
+            ]
+       }
+  ];
+
+
+  // 사실적 필름 톤 캔버스 드로잉 함수
+  function renderRealisticSampleCanvas(canvas, photoId) {
+       if (!canvas) return;
+       const ctx = canvas.getContext('2d');
+       const w = canvas.width;
+       const h = canvas.height;
+       ctx.clearRect(0, 0, w, h);
+
+
+       if (photoId === 'sample_sea_sunset') {
+        // 하늘 노을 그라데이션
+        const sky = ctx.createLinearGradient(0, 0, 0, h * 0.62);
+        sky.addColorStop(0, '#3B4D7A');
+        sky.addColorStop(0.45, '#C86D51');
+        sky.addColorStop(0.8, '#F2A65A');
+        sky.addColorStop(1, '#FDE2A7');
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, w, h * 0.62);
+
+
+        // 태양 글로우
+        const sunX = w * 0.66;
+        const sunY = h * 0.54;
+        const sunGrad = ctx.createRadialGradient(sunX, sunY, 6, sunX, sunY,
+110);
+        sunGrad.addColorStop(0, 'rgba(255, 250, 224, 0.98)');
+        sunGrad.addColorStop(0.35, 'rgba(255, 204, 112, 0.65)');
+        sunGrad.addColorStop(1, 'rgba(255, 160, 90, 0)');
+        ctx.fillStyle = sunGrad;
+        ctx.beginPath();
+        ctx.arc(sunX, sunY, 110, 0, Math.PI * 2);
+        ctx.fill();
+
+
+        // 구름 층
+        ctx.fillStyle = 'rgba(255, 214, 170, 0.28)';
+        for (let i = 0; i < 6; i++) {
+            ctx.beginPath();
+            ctx.ellipse(w * (0.15 + i * 0.16), h * (0.24 + (i % 3) * 0.08), 85,
+14, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+
+        // 바다 수면 & 노을 윤슬
+        const sea = ctx.createLinearGradient(0, h * 0.6, 0, h * 0.84);
+        sea.addColorStop(0, '#7A5C61');
+        sea.addColorStop(0.5, '#3E5C76');
+        sea.addColorStop(1, '#263B4D');
+        ctx.fillStyle = sea;
+        ctx.fillRect(0, h * 0.6, w, h * 0.24);
+
+
+        for (let y = h * 0.62; y < h * 0.83; y += 6) {
+            const spread = (y - h * 0.6) * 0.55 + 24;
+            const glintGrad = ctx.createLinearGradient(sunX - spread, y, sunX +
+spread, y);
+            glintGrad.addColorStop(0, 'rgba(255,225,150,0)');
+            glintGrad.addColorStop(0.5, 'rgba(255,235,180,0.55)');
+            glintGrad.addColorStop(1, 'rgba(255,225,150,0)');
+            ctx.fillStyle = glintGrad;
+            ctx.fillRect(sunX - spread, y, spread * 2, 2.5);
+        }
+
+
+        // 백사장 모래사장
+        const sand = ctx.createLinearGradient(0, h * 0.78, 0, h);
+        sand.addColorStop(0, '#C2A382');
+        sand.addColorStop(0.35, '#DFC39B');
+        sand.addColorStop(1, '#B89772');
+        ctx.fillStyle = sand;
+        ctx.beginPath();
+        ctx.moveTo(0, h * 0.82);
+        ctx.quadraticCurveTo(w * 0.45, h * 0.76, w, h * 0.86);
+        ctx.lineTo(w, h);
+        ctx.lineTo(0, h);
+        ctx.closePath();
+        ctx.fill();
+
+
+        // 파도 거품 라인
+        ctx.strokeStyle = 'rgba(255, 250, 240, 0.65)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(0, h * 0.825);
+        ctx.quadraticCurveTo(w * 0.45, h * 0.768, w, h * 0.865);
+        ctx.stroke();
+
+
+      } else if (photoId === 'sample_spring_blossom') {
+        // 맑은 봄 하늘 & 나무 캐노피
+const sky = ctx.createLinearGradient(0, 0, 0, h * 0.7);
+sky.addColorStop(0, '#8EC5E8');
+sky.addColorStop(0.65, '#DCEEF8');
+sky.addColorStop(1, '#F5EFE2');
+ctx.fillStyle = sky;
+ctx.fillRect(0, 0, w, h * 0.7);
+
+
+// 나뭇가지 실루엣
+ctx.strokeStyle = '#5C4638';
+ctx.lineCap = 'round';
+ctx.lineWidth = 14;
+ctx.beginPath();
+ctx.moveTo(w * 0.14, h * 0.75);
+ctx.quadraticCurveTo(w * 0.22, h * 0.42, w * 0.38, h * 0.18);
+ctx.stroke();
+
+
+ctx.lineWidth = 10;
+ctx.beginPath();
+ctx.moveTo(w * 0.86, h * 0.72);
+ctx.quadraticCurveTo(w * 0.76, h * 0.40, w * 0.62, h * 0.16);
+ctx.stroke();
+
+
+// 벚꽃 보케 및 꽃송이 군집
+const clusters = [
+     { x: w * 0.25, y: h * 0.25, r: 95 },
+     { x: w * 0.42, y: h * 0.16, r: 105 },
+     { x: w * 0.58, y: h * 0.18, r: 100 },
+     { x: w * 0.75, y: h * 0.28, r: 95 },
+     { x: w * 0.15, y: h * 0.42, r: 80 },
+     { x: w * 0.85, y: h * 0.44, r: 80 }
+];
+clusters.forEach((c, idx) => {
+     for (let i = 0; i < 42; i++) {
+       const angle = (i * 2.39996) + idx;
+       const dist = Math.sqrt(i / 42) * c.r;
+       const px = c.x + Math.cos(angle) * dist;
+       const py = c.y + Math.sin(angle) * dist * 0.72;
+                 const pr = 4 + (i % 5) * 2.2;
+                 ctx.fillStyle = i % 3 === 0 ? 'rgba(255, 228, 236, 0.88)' : i % 2
+=== 0 ? 'rgba(255, 245, 248, 0.92)' : 'rgba(247, 198, 212, 0.78)';
+                 ctx.beginPath();
+                 ctx.arc(px, py, pr, 0, Math.PI * 2);
+                 ctx.fill();
+             }
+       });
+
+
+       // 잔디와 산책길
+       const grass = ctx.createLinearGradient(0, h * 0.62, 0, h);
+       grass.addColorStop(0, '#89AC68');
+       grass.addColorStop(1, '#5D7D43');
+       ctx.fillStyle = grass;
+       ctx.fillRect(0, h * 0.62, w, h * 0.38);
+
+
+       ctx.fillStyle = '#E5DAC3';
+       ctx.beginPath();
+       ctx.moveTo(w * 0.42, h * 0.65);
+       ctx.quadraticCurveTo(w * 0.5, h * 0.78, w * 0.26, h);
+       ctx.lineTo(w * 0.76, h);
+       ctx.quadraticCurveTo(w * 0.56, h * 0.78, w * 0.58, h * 0.65);
+       ctx.closePath();
+       ctx.fill();
+
+
+       // 떨어지는 꽃잎
+       ctx.fillStyle = 'rgba(255, 222, 232, 0.9)';
+       for (let p = 0; p < 18; p++) {
+             const px = ((p * 73) % (w - 40)) + 20;
+             const py = h * 0.55 + ((p * 47) % (h * 0.4));
+             ctx.beginPath();
+             ctx.ellipse(px, py, 5, 3, p * 0.5, 0, Math.PI * 2);
+             ctx.fill();
+       }
+
+
+     } else if (photoId === 'sample_village_persimmon') {
+       // 따뜻한 가을 햇살 하늘 & 담장
+const sky = ctx.createLinearGradient(0, 0, 0, h * 0.55);
+sky.addColorStop(0, '#78A3C4');
+sky.addColorStop(1, '#F6E6C6');
+ctx.fillStyle = sky;
+ctx.fillRect(0, 0, w, h * 0.55);
+
+
+// 흙마당
+const yard = ctx.createLinearGradient(0, h * 0.55, 0, h);
+yard.addColorStop(0, '#C8A87E');
+yard.addColorStop(1, '#9E7E56');
+ctx.fillStyle = yard;
+ctx.fillRect(0, h * 0.55, w, h * 0.45);
+
+
+// 기와 담장
+ctx.fillStyle = '#B89B78';
+ctx.fillRect(0, h * 0.42, w, h * 0.18);
+ctx.fillStyle = '#3B4252';
+ctx.fillRect(0, h * 0.39, w, h * 0.04);
+
+
+// 감나무 가지 & 주렁주렁 익은 감
+ctx.strokeStyle = '#4E3B2C';
+ctx.lineWidth = 12;
+ctx.beginPath();
+ctx.moveTo(w * 0.2, h * 0.62);
+ctx.quadraticCurveTo(w * 0.24, h * 0.32, w * 0.42, h * 0.14);
+ctx.stroke();
+
+
+// 초록·노랑 단풍 잎
+for (let i = 0; i < 28; i++) {
+    const lx = w * 0.16 + ((i * 37) % (w * 0.34));
+    const ly = h * 0.12 + ((i * 29) % (h * 0.26));
+    ctx.fillStyle = i % 3 === 0 ? '#D99B26' : '#6F8F4E';
+    ctx.beginPath();
+    ctx.ellipse(lx, ly, 14, 7, i * 0.4, 0, Math.PI * 2);
+    ctx.fill();
+}
+          // 익은 감 열매
+          const persimmons = [
+                { x: w * 0.24, y: h * 0.22 },
+                { x: w * 0.32, y: h * 0.17 },
+                { x: w * 0.39, y: h * 0.25 },
+                { x: w * 0.28, y: h * 0.31 }
+          ];
+          persimmons.forEach((pt) => {
+                const pGrad = ctx.createRadialGradient(pt.x - 3, pt.y - 3, 2, pt.x,
+pt.y, 13);
+                pGrad.addColorStop(0, '#FF9E2C');
+                pGrad.addColorStop(1, '#C94A14');
+                ctx.fillStyle = pGrad;
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, 12, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#3B5E2B';
+                ctx.fillRect(pt.x - 5, pt.y - 14, 10, 4);
+          });
+
+
+          // 옹기 장독대 3개
+          const jars = [
+                { x: w * 0.58, y: h * 0.72, rx: 38, ry: 52 },
+                { x: w * 0.70, y: h * 0.75, rx: 32, ry: 44 },
+                { x: w * 0.80, y: h * 0.73, rx: 35, ry: 48 }
+          ];
+          jars.forEach((j) => {
+                const jGrad = ctx.createLinearGradient(j.x - j.rx, j.y - j.ry, j.x + j.rx,
+j.y + j.ry);
+                jGrad.addColorStop(0, '#7A4933');
+                jGrad.addColorStop(0.5, '#583222');
+                jGrad.addColorStop(1, '#3A1F14');
+                ctx.fillStyle = jGrad;
+                ctx.beginPath();
+                ctx.ellipse(j.x, j.y, j.rx, j.ry, 0, 0, Math.PI * 2);
+                ctx.fill();
+            // 장독 뚜껑
+            ctx.fillStyle = '#6B3E2A';
+            ctx.beginPath();
+            ctx.ellipse(j.x, j.y - j.ry + 4, j.rx * 0.92, 10, 0, 0, Math.PI * 2);
+            ctx.fill();
+      });
+
+
+    } else {
+      // 따뜻한 실내 조명 & 나무 식탁
+      const wall = ctx.createLinearGradient(0, 0, 0, h * 0.62);
+      wall.addColorStop(0, '#EFE6D5');
+      wall.addColorStop(1, '#DFCEB2');
+      ctx.fillStyle = wall;
+      ctx.fillRect(0, 0, w, h * 0.62);
+
+
+      const table = ctx.createLinearGradient(0, h * 0.56, 0, h);
+      table.addColorStop(0, '#9C6B43');
+      table.addColorStop(1, '#6E472B');
+      ctx.fillStyle = table;
+      ctx.fillRect(0, h * 0.56, w, h * 0.44);
+
+
+      // 흰 모시/면 테이블 러너
+      ctx.fillStyle = 'rgba(255, 252, 245, 0.92)';
+      ctx.fillRect(w * 0.14, h * 0.62, w * 0.72, h * 0.24);
+
+
+      // 따뜻한 그릇들
+      const bowls = [
+            { x: w * 0.30, y: h * 0.72, r: 28, color: '#F8FAFC', inner:
+'#EAB308' },
+            { x: w * 0.50, y: h * 0.69, r: 34, color: '#FFFBEB', inner:
+'#D97706' },
+            { x: w * 0.70, y: h * 0.72, r: 28, color: '#F8FAFC', inner:
+'#65A30D' }
+      ];
+      bowls.forEach((b) => {
+            ctx.fillStyle = 'rgba(0,0,0,0.12)';
+            ctx.beginPath();
+                ctx.ellipse(b.x, b.y + 8, b.r + 4, (b.r + 4) * 0.55, 0, 0, Math.PI *
+2);
+                ctx.fill();
+
+
+                ctx.fillStyle = b.color;
+                ctx.beginPath();
+                ctx.ellipse(b.x, b.y, b.r, b.r * 0.52, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+
+                ctx.fillStyle = b.inner;
+                ctx.beginPath();
+                ctx.ellipse(b.x, b.y - 3, b.r * 0.72, b.r * 0.34, 0, 0, Math.PI * 2);
+                ctx.fill();
+          });
+
+
+          // 따뜻한 찻잔과 김
+          const cupX = w * 0.50;
+          const cupY = h * 0.81;
+          ctx.fillStyle = '#FFFFFF';
+          ctx.beginPath();
+          ctx.ellipse(cupX, cupY, 16, 11, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+
+          ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(cupX - 4, cupY - 14);
+          ctx.quadraticCurveTo(cupX - 10, cupY - 26, cupX - 3, cupY - 38);
+          ctx.stroke();
+      }
+
+
+      // 은은한 아날로그 필름 그레인 & 비네트
+      const vignette = ctx.createRadialGradient(w * 0.5, h * 0.5, w * 0.25,
+w * 0.5, h * 0.5, w * 0.72);
+      vignette.addColorStop(0, 'rgba(0,0,0,0)');
+      vignette.addColorStop(1, 'rgba(28, 22, 16, 0.26)');
+      ctx.fillStyle = vignette;
+          ctx.fillRect(0, 0, w, h);
+
+
+          ctx.fillStyle = 'rgba(255, 250, 240, 0.04)';
+          for (let g = 0; g < 260; g++) {
+                const gx = (g * 97) % w;
+                const gy = (g * 53) % h;
+                ctx.fillRect(gx, gy, 2, 2);
+          }
+     }
+
+
+     function refreshAllSampleCanvases() {
+          document.querySelectorAll('canvas[data-sample-id]').forEach((canvas) => {
+                renderRealisticSampleCanvas(canvas, canvas.dataset.sampleId);
+          });
+     }
+
+
+     //
+===========================================================
+==============
+     // 2. 상태 관리 (동의 append-only, 세션 상태 전이, 복약·몸상태 질문, 로컬 저
+장)
+     //
+===========================================================
+==============
+     function createDefaultState() {
+          return {
+                currentRoute: 'home',
+                seniorName: '김순자 어르신',
+                consents: {
+                     data_storage: true,
+                     ai_processing: true,
+                     caregiver_sharing: true
+                },
+                consentHistory: [
+                     {
+                         id: 'c-init-1',
+                         consent_type: 'data_storage',
+                       granted: true,
+                       document_version: CONSENT_DOC_VERSION,
+                       created_at: new Date().toISOString()
+                  },
+                  {
+                       id: 'c-init-2',
+                       consent_type: 'ai_processing',
+                       granted: true,
+                       document_version: CONSENT_DOC_VERSION,
+                       created_at: new Date().toISOString()
+                  },
+                  {
+                       id: 'c-init-3',
+                       consent_type: 'caregiver_sharing',
+                       granted: true,
+                       document_version: CONSENT_DOC_VERSION,
+                       created_at: new Date().toISOString()
+                  }
+             ],
+             settings: {
+                  geminiApiKey: '',
+                  forceFallback: false
+             },
+             // 현재 진행 중이거나 마지막 선택된 세션
+             activeSessionId: null,
+             // 음성 마이크 UI 시뮬레이션 상태 (발표 시연용)
+             voiceSim: {
+                  micActive: true,
+                  lastSpokenLabel: '음성 인식 준비 완료 · 말씀하시듯 편하게 입력해 주세요
+'
+             },
+             sessions: []
+        };
+    }
+
+
+    let state = loadState();
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) {
+                const initial = createDefaultState();
+                // 처음 실행 시 1개의 안심 기록 예시를 넣어 보호자 탭도 바로 볼 수 있
+게 함
+                initial.sessions.push(buildSampleCompletedSession({
+                   id: 'sess-sample-1',
+                   dateLabel: '오늘 오전 10:15',
+                   photoTitle: '봄날 벚꽃길',
+                   photoSource: 'sample',
+                   sampleId: 'sample_spring_blossom',
+                   photoDataUrl: null,
+                   answers: [
+                        '예전에 동네 벚꽃길을 걸었던 생각이 나네.',
+                        '살랑살랑 봄바람이 불어서 기분이 참 상쾌했어.',
+                        '꽃잎이 날릴 때 웃으면서 걸었던 기억이 남아.'
+                   ],
+                   medicationStatus: 'taken',
+                   medicationRaw: '네, 아침 식사 뒤에 혈압약이랑 영양제 챙겨 먹었어요
+.',
+                   conditionStatus: 'good',
+                   conditionRaw: '오늘 몸도 가볍고 기운이 좋아요. 아픈 곳 없어요.',
+                   hasHealthDistress: false,
+                   distressSummary: null,
+                   keywords: ['봄날 벚꽃길', '봄바람', '산책', '상쾌함'],
+                   activitySummary: '어르신께서 봄날 벚꽃길 사진을 보며 봄바람과 꽃잎이
+날리던 즐거운 산책 기억을 차분히 이야기하셨습니다.',
+                   healthMentionNote: '특이 신체 불편 언급 없음 · 일상 컨디션 양호',
+                   summarySource: 'fallback'
+                }));
+                initial.activeSessionId = initial.sessions[0].id;
+                return initial;
+          }
+          const parsed = JSON.parse(raw);
+          return {
+                  ...createDefaultState(),
+                  ...parsed,
+                  consents: { ...createDefaultState().consents, ...(parsed.consents || {}) },
+                  settings: { ...createDefaultState().settings, ...(parsed.settings || {}) },
+                  voiceSim: { ...createDefaultState().voiceSim, ...(parsed.voiceSim || {}) },
+                  sessions: Array.isArray(parsed.sessions) ? parsed.sessions : []
+             };
+         } catch (e) {
+             console.error('State load error:', e);
+             return createDefaultState();
+         }
+     }
+
+
+     function saveState() {
+         try {
+             localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+         } catch (e) {
+             showToast('브라우저 저장 공간이 부족합니다. 일부 기록을 정리해 주세요.',
+'error');
+         }
+         updateFooterStatus();
+     }
+
+
+     function updateFooterStatus() {
+         const el = document.getElementById('footer-ai-mode');
+         if (!el) return;
+         if (state.settings.forceFallback) {
+             el.textContent = 'Fallback 강제 전환 모드 (시연용)';
+             el.className = 'text-[#E06D3B] font-extrabold';
+         }              else           if          (state.settings.geminiApiKey                 &&
+state.settings.geminiApiKey.trim().length > 10) {
+             el.textContent = 'Gemini API 연결됨 (실패 시 자동 Fallback)';
+             el.className = 'text-[#2E7D5B] font-extrabold';
+         } else {
+             el.textContent = '내장 AI + 안전 Fallback 활성';
+             el.className = 'text-[#2E7D5B] font-extrabold';
+         }
+   }
+
+
+   function buildSampleCompletedSession(opts) {
+       return {
+         id: opts.id,
+         createdAt: new Date().toISOString(),
+         dateLabel: opts.dateLabel,
+         status: 'completed',
+         // stage 흐름:
+         // 'recall_1' | 'recall_2' | 'recall_3' -> 3턴 회상 대화
+         // 'ask_medication' -> 할머니께 직접 약 복용 여부 질문
+         // 'ask_condition' -> 할머니께 직접 몸 상태/아픈 곳 질문
+         // 'completed' -> 요약 확정 완료
+         stage: 'completed',
+         photoSource: opts.photoSource,
+         sampleId: opts.sampleId,
+         photoTitle: opts.photoTitle,
+         photoDataUrl: opts.photoDataUrl,
+         messages: [
+           {    role:   'assistant',   tag:   '추억   회상   질문   1/3',   content:   `어르신,
+${opts.photoTitle} 사진을 보니 어떤 기억이 가장 먼저 떠오르시나요?` },
+           { role: 'user', tag: '음성 답변 · 1턴', content: opts.answers[0] },
+           { role: 'assistant', tag: '추억 회상 질문 2/3', content: '그때의 분위기나
+느낌은 어떠셨는지 더 들려주실 수 있나요?' },
+           { role: 'user', tag: '음성 답변 · 2턴', content: opts.answers[1] },
+           { role: 'assistant', tag: '추억 회상 질문 3/3', content: '지금도 마음에 남
+는 장면이 있다면 편하게 말씀해 주세요.' },
+           { role: 'user', tag: '음성 답변 · 3턴', content: opts.answers[2] },
+           {
+                role: 'assistant',
+                tag: '복약 확인 질문',
+                content: '할머니, 오늘 드셔야 할 약은 챙겨 드셨나요? 아침이나 낮 약
+복용 여부를 편하게 말씀해 주세요.'
+           },
+           { role: 'user', tag: '음성 답변 · 복약', content: opts.medicationRaw },
+           {
+                role: 'assistant',
+                        tag: '몸 컨디션 질문',
+                        content: '할머니, 오늘 몸 상태는 좀 어떠세요? 어지럽거나 머리가 아프
+거나 불편하신 곳은 없으신가요?'
+                   },
+                   { role: 'user', tag: '음성 답변 · 몸 상태', content: opts.conditionRaw }
+              ],
+              recallAnswers: opts.answers,
+              checkin: {
+                   medication_status: opts.medicationStatus,
+                   medication_raw: opts.medicationRaw,
+                   condition_status: opts.conditionStatus,
+                   condition_raw: opts.conditionRaw,
+                   has_health_distress: opts.hasHealthDistress,
+                   distress_summary: opts.distressSummary
+              },
+              summary: {
+                   participation_count: 3,
+                   recall_keywords: opts.keywords,
+                   activity_summary: opts.activitySummary,
+                   health_mention_note: opts.healthMentionNote,
+                   has_health_distress: opts.hasHealthDistress,
+                   distress_detail: opts.distressSummary,
+                   summary_source: opts.summarySource
+              }
+         };
+    }
+
+
+    //
+===========================================================
+==============
+    // 3. 동의 관리 & 세션 생성 / 대화 진행 / 건강 판별 로직
+    //
+===========================================================
+==============
+    function hasCoreConsents() {
+         return                     Boolean(state.consents.data_storage           &&
+state.consents.ai_processing);
+   }
+
+
+   function toggleConsent(type) {
+       const nextVal = !state.consents[type];
+       state.consents[type] = nextVal;
+       state.consentHistory.unshift({
+             id: 'c-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+             consent_type: type,
+             granted: nextVal,
+             document_version: CONSENT_DOC_VERSION,
+             created_at: new Date().toISOString()
+       });
+       saveState();
+
+
+       const labelMap = {
+             data_storage: '회상·건강 기록 저장 동의',
+             ai_processing: 'AI 회상 질문·요약 처리 동의',
+             caregiver_sharing: '보호자 요약 공유 동의'
+       };
+       showToast(
+             `${labelMap[type]}가 ${nextVal ? '허용(활성)' : '철회(비활성)'}로 기록되었
+습니다.`,
+             nextVal ? 'success' : 'warn'
+       );
+       render();
+   }
+
+
+   function startSessionWithSample(sampleId) {
+       if (!hasCoreConsents()) {
+             showToast('회상 대화를 시작하려면 [기록 저장 동의]와 [AI 처리 동의]가 모
+두 필요합니다.', 'error');
+             navigateTo('home');
+             return;
+       }
+       const sample = SAMPLE_PHOTOS.find((s) => s.id === sampleId);
+       if (!sample) return;
+        const newSession = {
+             id: 'sess-' + Date.now(),
+             createdAt: new Date().toISOString(),
+             dateLabel: formatKoreanDateTime(new Date()),
+             status: 'in_progress',
+             stage: 'recall_1',
+             photoSource: 'sample',
+             sampleId: sample.id,
+             photoTitle: sample.title,
+             photoDataUrl: null,
+             messages: [
+                  {
+                      role: 'assistant',
+                      tag: '추억 회상 질문 1/3',
+                      content: sample.starterQuestion
+                  }
+             ],
+             recallAnswers: [],
+             checkin: {
+                  medication_status: 'not_recorded',
+                  medication_raw: '',
+                  condition_status: 'not_recorded',
+                  condition_raw: '',
+                  has_health_distress: false,
+                  distress_summary: null
+             },
+             summary: null
+        };
+
+
+        state.sessions.unshift(newSession);
+        state.activeSessionId = newSession.id;
+        saveState();
+        showToast(`'${sample.title}'        추억     사진으로   회상   대화를   시작합니다.`,
+'success');
+        navigateTo('session');
+    }
+     function handlePhotoUpload(event) {
+       const file = event.target.files && event.target.files[0];
+       event.target.value = '';
+       if (!file) return;
+
+
+       if (!hasCoreConsents()) {
+            showToast('사진을 등록하려면 먼저 [기록 저장 동의]와 [AI 처리 동의]를 허
+용해 주세요.', 'error');
+            navigateTo('home');
+            return;
+       }
+
+
+       const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+       if (!allowedTypes.includes(file.type)) {
+            showToast('JPG, PNG, WEBP 형식의 사진만 업로드할 수 있습니다.',
+'error');
+            return;
+       }
+
+
+       const maxBytes = 5 * 1024 * 1024;
+       if (file.size > maxBytes) {
+            showToast('사진 크기는 5MB 이하만 등록할 수 있습니다.', 'error');
+            return;
+       }
+
+
+       const reader = new FileReader();
+       reader.onload = function (e) {
+            const dataUrl = e.target.result;
+            const cleanTitle = file.name.replace(/\.[^/.]+$/, '').slice(0, 28) || '소중한
+추억 사진';
+
+
+            const newSession = {
+              id: 'sess-' + Date.now(),
+              createdAt: new Date().toISOString(),
+              dateLabel: formatKoreanDateTime(new Date()),
+              status: 'in_progress',
+              stage: 'recall_1',
+                  photoSource: 'upload',
+                  sampleId: null,
+                  photoTitle: cleanTitle,
+                  photoDataUrl: dataUrl,
+                  messages: [
+                       {
+                           role: 'assistant',
+                           tag: '추억 회상 질문 1/3',
+                           content: `어르신, 올리신 '${cleanTitle}' 사진을 보니 어떤 기억이나 이
+야기가 떠오르시나요?`
+                       }
+                  ],
+                  recallAnswers: [],
+                  checkin: {
+                       medication_status: 'not_recorded',
+                       medication_raw: '',
+                       condition_status: 'not_recorded',
+                       condition_raw: '',
+                       has_health_distress: false,
+                       distress_summary: null
+                  },
+                  summary: null
+             };
+
+
+             state.sessions.unshift(newSession);
+             state.activeSessionId = newSession.id;
+             saveState();
+             showToast(`'${cleanTitle}' 사진이 등록되었습니다. 회상 대화를 시작해 보세
+요!`, 'success');
+             navigateTo('session');
+        };
+        reader.readAsDataURL(file);
+    }
+
+
+    function getActiveSession() {
+        if (!state.activeSessionId && state.sessions.length > 0) {
+             state.activeSessionId = state.sessions[0].id;
+      }
+      return state.sessions.find((s) => s.id === state.activeSessionId) || null;
+  }
+
+
+  // 몸이 안좋음 / 아픔 키워드 판별 (보호자 요약 붉은색/초록색 강조용)
+  function detectHealthDistress(text) {
+      const cleaned = (text || '').trim();
+      if (!cleaned) return { isDistressed: false, reason: null };
+
+
+      // '안 아파요', '불편한 곳 없어요', '괜찮아요', '아픈 곳 없' 같은 긍정/무증상
+표현 먼저 체크
+      const noPainPatterns = [
+           /안\s*아[파팠]/,
+           /아픈\s*곳\s*(없|안)/,
+           /불편한\s*곳\s*(없|안)/,
+           /이상\s*(없|무)/,
+           /괜찮(아|아요|습니다|은\s*편)/,
+           /멀쩡/,
+           /건강(해|해요|합니다)/,
+           /기운\s*(좋|있)/
+      ];
+
+
+      const distressPatterns = [
+           /아[파팠]/,
+           /아프/,
+           /몸살/,
+           /어지러/,
+           /어지럼/,
+           /두통/,
+           /머리.*아/,
+           /가슴.*(아|답답|통증)/,
+           /숨.*(차|가쁘|곤란)/,
+           /기운.*(없|빠져|딸려)/,
+           /힘이\s*(없|안\s*나|빠져)/,
+           /불편(해|해요|합니다|하네)/,
+           /통증/,
+           /구토/,
+             /메스꺼/,
+             /열이?\s*나/,
+             /잠.*못\s*자/,
+             /소화.*안/,
+             /배가?\s*(아|살살)/,
+             /허리.*아/,
+             /무릎.*아/,
+             /다리.*(아|저려|부어)/
+        ];
+
+
+        const hasDistressWord = distressPatterns.some((re) => re.test(cleaned));
+        const hasExplicitNoPain = noPainPatterns.some((re) => re.test(cleaned));
+
+
+        if (hasDistressWord && !hasExplicitNoPain) {
+             return {
+                  isDistressed: true,
+                  reason: cleaned.slice(0, 120)
+             };
+        }
+        return { isDistressed: false, reason: null };
+    }
+
+
+    function parseMedicationAnswer(text) {
+        const t = (text || '').trim();
+        if (/안\s*(먹|드|복용)/.test(t) || /못\s*(먹|드|챙)/.test(t) || /깜빡/.test(t) || /잊
+어/.test(t)) {
+             return 'not_taken';
+        }
+        if (/(먹었|드셨|복용|챙겼|네|예|완료)/.test(t)) {
+             return 'taken';
+        }
+        return 'not_recorded';
+    }
+
+
+    function parseConditionAnswer(text, isDistressed) {
+        if (isDistressed) return 'unwell';
+        const t = (text || '').trim();
+         if (/(좋|상쾌|개운|괜찮|건강|활기)/.test(t)) return 'good';
+         if (/(보통|그냥|무난)/.test(t)) return 'okay';
+         return 'not_recorded';
+     }
+
+
+     // 마이크 버튼 클릭 시 시연용 안내 문구 갱신
+     function toggleVoiceMicSim() {
+         state.voiceSim.micActive = !state.voiceSim.micActive;
+         state.voiceSim.lastSpokenLabel = state.voiceSim.micActive
+             ? '마이크 켜짐 · 어르신 말씀을 듣는 중입니다 (아래 칸에 입력해 시연)'
+             : '마이크 대기 중 · 버튼을 눌러 음성을 켜거나 바로 입력하세요';
+         saveState();
+         render();
+     }
+
+
+     // 빠른 원터치 답변 도우미 (발표 시연 편의성)
+     function quickFillAndSend(sampleText) {
+         const input = document.getElementById('voice-answer-input');
+         if (input) {
+             input.value = sampleText;
+         }
+         submitVoiceTurn(sampleText);
+     }
+
+
+     async function submitVoiceTurn(overrideText) {
+         const session = getActiveSession();
+         if (!session) {
+             showToast('먼저 추억 사진을 선택해 대화를 시작해 주세요.', 'warn');
+             navigateTo('photo');
+             return;
+         }
+
+
+         if (!hasCoreConsents()) {
+             showToast('저장 또는 AI 동의가 철회되어 대화를 진행할 수 없습니다.',
+'error');
+             navigateTo('home');
+             return;
+       }
+
+
+       if (session.stage === 'completed') {
+           showToast('이미 완료된 회상·건강 세션입니다. 요약 화면에서 확인해 보세요
+.', 'info');
+           navigateTo('summary');
+           return;
+       }
+
+
+       const inputEl = document.getElementById('voice-answer-input');
+       const rawText = typeof overrideText === 'string' ? overrideText :
+ (inputEl ? inputEl.value : '');
+       const answer = (rawText || '').trim();
+
+
+       if (!answer) {
+           showToast('어르신 답변(음성 시뮬레이션 입력)을 한 마디라도 입력해 주세요
+.', 'warn');
+           if (inputEl) inputEl.focus();
+           return;
+       }
+
+
+       if (answer.length > 1000) {
+           showToast('답변은 1,000자 이내로 입력해 주세요.', 'error');
+           return;
+       }
+
+
+       if (inputEl) inputEl.value = '';
+
+
+       // 시연용 음성 인식 완료 라벨 업데이트
+       state.voiceSim.lastSpokenLabel       =   `음성   인식   완료:   "${answer.slice(0,
+32)}${answer.length > 32 ? '...' : ''}"`;
+
+
+       // 단계별 처리
+       if (session.stage === 'recall_1') {
+           session.recallAnswers.push(answer);
+           session.messages.push({ role: 'user', tag: '음성 답변 · 1턴', content:
+ answer });
+        const nextQ = await generateNextRecallQuestion(session, 2, answer);
+        session.messages.push({ role: 'assistant', tag: '추억 회상 질문 2/3',
+content: nextQ });
+        session.stage = 'recall_2';
+        saveState();
+        render();
+        scrollChatToBottom();
+
+
+      } else if (session.stage === 'recall_2') {
+        session.recallAnswers.push(answer);
+        session.messages.push({ role: 'user', tag: '음성 답변 · 2턴', content:
+ answer });
+
+
+        const nextQ = await generateNextRecallQuestion(session, 3, answer);
+        session.messages.push({ role: 'assistant', tag: '추억 회상 질문 3/3',
+content: nextQ });
+        session.stage = 'recall_3';
+        saveState();
+        render();
+        scrollChatToBottom();
+
+
+      } else if (session.stage === 'recall_3') {
+        // 3턴 회상 완료 -> 정담이가 할머니께 직접 약 복용 여부 질문
+        session.recallAnswers.push(answer);
+        session.messages.push({ role: 'user', tag: '음성 답변 · 3턴', content:
+ answer });
+
+
+        const medQuestion =
+          '오늘 추억 이야기 잘 들었어요, 할머니! 그런데 오늘 드셔야 할 약은 챙겨
+드셨나요? 아침이나 낮에 약을 드셨는지 편하게 말씀해 주세요.';
+        session.messages.push({       role:   'assistant',   tag:   '약   복용   직접   질문',
+content: medQuestion });
+        session.stage = 'ask_medication';
+        saveState();
+        render();
+        scrollChatToBottom();
+      } else if (session.stage === 'ask_medication') {
+        // 약 복용 답변 저장 -> 정담이가 할머니께 직접 몸 컨디션/아픈 곳 질문
+        const medStatus = parseMedicationAnswer(answer);
+        const medDistress = detectHealthDistress(answer);
+        session.checkin.medication_status = medStatus;
+        session.checkin.medication_raw = answer;
+        if (medDistress.isDistressed) {
+            session.checkin.has_health_distress = true;
+            session.checkin.distress_summary = medDistress.reason;
+        }
+
+
+        session.messages.push({ role: 'user', tag: '음성 답변 · 약 복용', content:
+ answer });
+
+
+        const condQuestion =
+            '알려주셔서 고마워요, 할머니. 오늘 몸 컨디션은 좀 어떠세요? 머리가 아프
+거나 어지럽거나 몸에 불편하신 곳은 없으신가요?';
+        session.messages.push({        role:   'assistant',   tag:   '몸   상태   직접   질문',
+content: condQuestion });
+        session.stage = 'ask_condition';
+        saveState();
+        render();
+        scrollChatToBottom();
+
+
+      } else if (session.stage === 'ask_condition') {
+        // 몸 컨디션 답변 저장 -> 요약 생성 및 세션 완료
+        const condDistress = detectHealthDistress(answer);
+        const       combinedDistress      =      session.checkin.has_health_distress   ||
+condDistress.isDistressed;
+        const           distressNote             =            condDistress.reason      ||
+session.checkin.distress_summary || null;
+
+
+        session.checkin.condition_status             =    parseConditionAnswer(answer,
+combinedDistress);
+        session.checkin.condition_raw = answer;
+        session.checkin.has_health_distress = combinedDistress;
+             session.checkin.distress_summary = distressNote;
+
+
+             session.messages.push({ role: 'user', tag: '음성 답변 · 몸 상태', content:
+ answer });
+
+
+             const summaryResult = await generateSessionSummary(session);
+             session.summary = summaryResult;
+             session.stage = 'completed';
+             session.status = 'completed';
+
+
+             const closingMsg = combinedDistress
+               ? '할머니, 몸이 불편하시다고 말씀해 주셔서 보호자 요약 화면에 응급 주의
+표시로 남겨두었어요. 무리하지 마시고 쉬시거나 필요시 가족·전문기관에 꼭 알리세요.'
+               : '할머니, 오늘 소중한 기억과 복약·몸 상태까지 다정하게 들려주셔서 고마
+워요. 요약 기록을 잘 저장해 두었습니다!';
+
+
+             session.messages.push({    role:   'assistant',   tag:   '대화   마무리   안내',
+content: closingMsg });
+             saveState();
+             render();
+             scrollChatToBottom();
+             showToast('3턴 회상과 복약·몸 상태 대화가 완료되고 요약이 저장되었습니
+다!', 'success');
+         }
+    }
+
+
+    //
+===========================================================
+==============
+    // 4. Gemini API 연동 및 안전 Fallback (TRD §3.2 계약 준수)
+    //
+===========================================================
+==============
+    async function callGeminiText(promptText) {
+         const key = (state.settings.geminiApiKey || '').trim();
+         if (state.settings.forceFallback || !key) {
+             throw new Error('FALLBACK_MODE');
+        }
+
+
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 12000);
+
+
+        try {
+            const res = await fetch(
+
+
+`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:gener
+ateContent?key=${encodeURIComponent(key)}`,
+                 {
+                     method: 'POST',
+                     headers: { 'Content-Type': 'application/json' },
+                     signal: controller.signal,
+                     body: JSON.stringify({
+                          contents: [{ parts: [{ text: promptText }] }],
+                          generationConfig: { temperature: 0.5, maxOutputTokens: 400 }
+                     })
+                 }
+            );
+            clearTimeout(timer);
+            if (!res.ok) {
+                 throw new Error(`HTTP_${res.status}`);
+            }
+            const data = await res.json();
+            const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            if (!text.trim()) throw new Error('EMPTY_AI_RESPONSE');
+            return text.trim();
+        } catch (err) {
+            clearTimeout(timer);
+            throw err;
+        }
+    }
+
+
+    async                 function     generateNextRecallQuestion(session,   turnNumber,
+latestAnswer) {
+        const sample = SAMPLE_PHOTOS.find((s) => s.id === session.sampleId);
+           const fallbackQ =
+               (sample && sample.followUps[turnNumber - 2]) ||
+               (turnNumber === 2
+                   ? '그때의 느낌이나 주변 풍경 중에서 지금도 생생하게 떠오르는 것이 있으
+신가요?'
+                   : '그 기억을 떠올리시니 지금 어떤 마음이 드시는지 편하게 말씀해 주세요
+.');
+
+
+           try {
+               const prompt = [
+                   '당신은 65세 이상 어르신과 따뜻하게 회상 대화를 나누는 돌봄 도우미 "정
+담이"입니다.',
+                   '사진 속 인물·관계·날짜·장소를 추측하거나 단정하지 마세요. 의학적 진단이
+나 위험 판정을 하지 마세요.',
+                   `사진 주제: ${session.photoTitle}`,
+                   `어르신의 직전 답변: "${latestAnswer}"`,
+                   `현재 회상 턴: ${turnNumber}/3`,
+                   '어르신의 답변에 공감하며 자연스럽게 이어지는 열린 질문 1문장만 한국어
+로 작성하세요(120자 이내).'
+               ].join('\n');
+
+
+               const aiText = await callGeminiText(prompt);
+               const cleaned = aiText.replace(/^["']|["']$/g, '').trim();
+               if (cleaned.length < 4 || cleaned.length > 240) return fallbackQ;
+               return cleaned;
+           } catch (_) {
+               return fallbackQ;
+           }
+       }
+
+
+       async function generateSessionSummary(session) {
+           const hasDistress = Boolean(session.checkin.has_health_distress);
+           const distressDetail = session.checkin.distress_summary || null;
+
+
+           // 로컬 키워드 추출
+           const combinedAnswers = [
+               ...session.recallAnswers,
+            session.checkin.medication_raw,
+            session.checkin.condition_raw
+      ].join(' ');
+
+
+      const extractedKeywords = [];
+      if (session.photoTitle) extractedKeywords.push(session.photoTitle);
+      const candidateWords = ['바다', '노을', '파도', '벚꽃', '봄바람', '감나무', '장
+독대', '명절', '가족', '산책', '기억', '약', '컨디션'];
+      candidateWords.forEach((w) => {
+            if       (combinedAnswers.includes(w)    &&   !extractedKeywords.includes(w)
+&& extractedKeywords.length < 5) {
+                 extractedKeywords.push(w);
+            }
+      });
+      if (extractedKeywords.length === 0) {
+            extractedKeywords.push('추억 회상', '일상 대화');
+      }
+
+
+      const medText =
+            session.checkin.medication_status === 'taken'
+                 ? '복약 완료 언급'
+                 : session.checkin.medication_status === 'not_taken'
+                 ? '미복용/확인 필요 언급'
+                 : '복약 응답 기록됨';
+
+
+      const fallbackSummary = {
+            participation_count: 3,
+            recall_keywords: extractedKeywords.slice(0, 5),
+            activity_summary: `'${session.photoTitle}' 사진을 바탕으로 3턴 회상 대화를
+마쳤으며(${medText}), 어르신께서 "${session.recallAnswers[0] || '소중한 기억'}" 등
+의 이야기를 들려주셨습니다.`,
+            health_mention_note: hasDistress
+                 ?      `몸     상태     불편·통증         언급      감지         (${distressDetail    ||
+session.checkin.condition_raw}) — 보호자 확인 및 전문기관 연계 참고`
+                 :       `신체      통증·불편         언급        없음       ·        컨디션            양호
+(${session.checkin.condition_raw || '불편 없음'})`,
+            has_health_distress: hasDistress,
+             distress_detail: distressDetail,
+             summary_source: 'fallback'
+        };
+
+
+        try {
+             const prompt = [
+                '당신은 어르신의 회상 대화와 복약·몸 상태 대화를 정리하는 요약 도우미입
+니다.',
+                '의학적 진단, 질환명 단정, 위험도 판정을 절대 하지 마세요.',
+                `사진: ${session.photoTitle}`,
+                `회상 답변 1~3: ${session.recallAnswers.join(' / ')}`,
+                `약 복용 답변: ${session.checkin.medication_raw}`,
+                `몸 컨디션 답변: ${session.checkin.condition_raw}`,
+                'JSON        형식으로만        답하세요:        {"recall_keywords":["키워드1","키워드
+2"],"activity_summary":"150자 이내 회상 활동 요약","health_mention_note":"몸 상
+태 및 건강 언급 중립 요약"}'
+             ].join('\n');
+
+
+             const raw = await callGeminiText(prompt);
+             const jsonMatch = raw.match(/\{[\s\S]*\}/);
+             if (!jsonMatch) return fallbackSummary;
+             const parsed = JSON.parse(jsonMatch[0]);
+
+
+             const kwList = Array.isArray(parsed.recall_keywords)
+                ?                    parsed.recall_keywords.map((k)                     =>
+String(k).trim()).filter(Boolean).slice(0, 5)
+                : fallbackSummary.recall_keywords;
+
+
+             return {
+                participation_count: 3,
+                recall_keywords:       kwList.length      >     0      ?       kwList    :
+fallbackSummary.recall_keywords,
+                activity_summary:
+                    typeof      parsed.activity_summary        ===         'string'     &&
+parsed.activity_summary.trim().length > 5
+                      ? parsed.activity_summary.trim().slice(0, 500)
+                      : fallbackSummary.activity_summary,
+                  health_mention_note: hasDistress
+                    ? `[불편 언급] ${typeof parsed.health_mention_note === 'string' &&
+ parsed.health_mention_note.trim()               ?    parsed.health_mention_note.trim()   :
+distressDetail}`
+                    : `[불편 없음] ${typeof parsed.health_mention_note === 'string' &&
+ parsed.health_mention_note.trim() ? parsed.health_mention_note.trim() : '신체
+불편 언급 없음'}`,
+                  has_health_distress: hasDistress,
+                  distress_detail: distressDetail,
+                  summary_source: 'ai'
+             };
+         } catch (_) {
+             return fallbackSummary;
+         }
+    }
+
+
+    function deleteSession(sessionId) {
+         state.sessions = state.sessions.filter((s) => s.id !== sessionId);
+         if (state.activeSessionId === sessionId) {
+             state.activeSessionId = state.sessions[0] ? state.sessions[0].id : null;
+         }
+         saveState();
+         showToast('선택한 활동 기록과 사진 데이터가 삭제되었습니다.', 'info');
+         render();
+    }
+
+
+    function selectSessionAndGo(sessionId, route) {
+         state.activeSessionId = sessionId;
+         saveState();
+         navigateTo(route);
+    }
+
+
+    //
+===========================================================
+==============
+    // 5. 화면 렌더링 (1.홈·동의, 2.추억사진, 3.회상·건강대화, 4.활동요약, 5.보호자
+요약)
+   //
+===========================================================
+==============
+   function navigateTo(route) {
+        state.currentRoute = route;
+        saveState();
+        render();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+   }
+
+
+   function render() {
+        const tabs = ['home', 'photo', 'session', 'summary', 'caregiver'];
+        tabs.forEach((t) => {
+              const el = document.getElementById(`tab-${t}`);
+              if (el) {
+                  el.classList.toggle('active', state.currentRoute === t);
+              }
+        });
+
+
+        const main = document.getElementById('main-content');
+        if (!main) return;
+
+
+        if (state.currentRoute === 'home') {
+              main.innerHTML = renderHomeView();
+        } else if (state.currentRoute === 'photo') {
+              main.innerHTML = renderPhotoView();
+        } else if (state.currentRoute === 'session') {
+              main.innerHTML = renderSessionView();
+        } else if (state.currentRoute === 'summary') {
+              main.innerHTML = renderSummaryView();
+        } else if (state.currentRoute === 'caregiver') {
+              main.innerHTML = renderCaregiverView();
+        }
+
+
+        refreshAllSampleCanvases();
+        updateFooterStatus();
+   }
+     // [1] 어르신 홈 & 명시적 동의 화면
+     function renderHomeView() {
+      const coreOk = hasCoreConsents();
+      return `
+        <div class="space-y-7">
+          <!-- 히어로 카드 -->
+          <section class="senior-card p-6 sm:p-8 bg-gradient-to-br from-white
+via-[#FAF7F2] to-[#EAF5EF]/60">
+             <div          class="flex        flex-col       lg:flex-row        lg:items-center
+lg:justify-between gap-6">
+                  <div class="space-y-3 max-w-2xl">
+                    <span     class="inline-block        bg-[#2E7D5B]      text-white   text-sm
+font-bold px-3.5 py-1 rounded-full">
+                        오늘의 회상 & 돌봄 시작하기
+                    </span>
+                    <h1     class="text-3xl    sm:text-4xl    font-extrabold     text-gray-900
+leading-tight">
+                        안녕하세요, ${escapeHtml(state.seniorName)}!<br/>
+                        추억 사진으로 이야기 나누어요
+                    </h1>
+                    <p class="text-lg text-gray-700">
+                        사진을 고르고 <strong>3번의 추억 회상 대화</strong>를 나눈
+뒤, 정담이가 여쭤보는 <strong>약 복용 여부와 오늘 몸 상태</strong>를 말씀해 주세
+요.
+                    </p>
+                  </div>
+                  <div class="flex flex-col sm:flex-row lg:flex-col gap-3 shrink-0">
+                    <button
+                        onclick="navigateTo('photo')"
+                        ${!coreOk ? 'disabled' : ''}
+                        class="btn-primary px-7 py-4 text-xl shadow-md"
+                    >
+                        추억 사진 고르기 →
+                    </button>
+                    <button
+                        onclick="navigateTo('caregiver')"
+                       class="btn-secondary px-6 py-3.5 text-lg"
+                   >
+                       보호자 요약 보기
+                   </button>
+              </div>
+            </div>
+          </section>
+
+
+          <!-- 동의 설정 카드 -->
+          <section class="senior-card p-6 sm:p-8 space-y-5">
+            <div          class="flex    flex-col   sm:flex-row        sm:items-center
+sm:justify-between gap-2 border-b border-[#E5DEC9] pb-4">
+              <div>
+                   <h2 class="text-2xl font-extrabold text-gray-900">이용 동의 설정
+(최소 수집 · 언제든 철회 가능)</h2>
+                   <p class="text-base text-gray-600">
+                       동의 상태는 이력으로 남으며, 저장·AI 동의가 꺼져 있으면 대화가
+진행되지 않습니다.
+                   </p>
+              </div>
+              <span         class="text-sm   font-bold   px-3      py-1.5   rounded-xl
+ ${coreOk ? 'bg-[#EAF5EF] text-[#1E5A40]' : 'bg-red-100 text-red-800'}">
+                   ${coreOk ? '필수 동의 완료' : '필수 동의 필요'}
+              </span>
+            </div>
+
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              ${renderConsentBox(
+                   'data_storage',
+                   '1. 회상·건강 기록 저장 동의',
+                   '선택한 사진, 회상 대화, 복약·몸 상태 체크 기록을 브라우저에 저장
+하고 다시 조회합니다.',
+                   state.consents.data_storage,
+                   true
+              )}
+              ${renderConsentBox(
+                   'ai_processing',
+                           '2. AI 회상 질문·요약 동의',
+                           '사진과 답변을 바탕으로 회상 질문과 활동 요약을 생성합니다(장애
+시 안전 Fallback 사용).',
+                           state.consents.ai_processing,
+                           true
+                      )}
+                      ${renderConsentBox(
+                           'caregiver_sharing',
+                           '3. 보호자 요약 공유 동의',
+                           '보호자 요약 탭에서 활동 요약과 몸 상태 알림(원본 사진·대화 전문
+제외)을 공유합니다.',
+                           state.consents.caregiver_sharing,
+                           false
+                      )}
+                 </div>
+               </section>
+
+
+               <!-- 시연 안내 박스 -->
+               <section class="senior-card p-6 bg-orange-50/60 border-orange-200
+space-y-2">
+                 <h3 class="text-xl font-extrabold text-orange-950">발표 시연 안내
+(음성 대화 UI 시뮬레이션)</h3>
+                 <p class="text-base text-orange-900">
+                      3번 회상·건강 대화 화면에는 <strong>마이크 파형 UI</strong>가 준
+비되어 있습니다. 시연 시 실제 앱에서는 음성으로 대화할 것임을 안내하신 뒤, 마이크
+가 켜진 상태에서 답변 입력창에 키보드로 치면 자연스럽게 대화가 이어집니다.
+                 </p>
+               </section>
+             </div>
+        `;
+    }
+
+
+    function renderConsentBox(type, title, desc, active, isRequired) {
+        return `
+             <div class="p-5 rounded-2xl border-2 ${active ? 'border-[#2E7D5B]
+ bg-[#EAF5EF]/35' : 'border-gray-200 bg-gray-50'} flex flex-col justify-between
+gap-4">
+               <div class="space-y-2">
+                   <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs font-extrabold px-2.5 py-0.5 rounded-full
+ ${isRequired ? 'bg-amber-100 text-amber-900' : 'bg-blue-100 text-blue-900'}">
+                          ${isRequired ? '필수 권장' : '보호자 공유'}
+                        </span>
+                        <span class="text-sm font-extrabold ${active ? 'text-[#1E5A40]' :
+'text-gray-500'}">
+                          ${active ? '● 동의함' : '○ 미동의'}
+                        </span>
+                   </div>
+                   <h3 class="text-xl font-extrabold text-gray-900">${title}</h3>
+                   <p class="text-base text-gray-700 leading-relaxed">${desc}</p>
+               </div>
+               <button
+                   onclick="toggleConsent('${type}')"
+                   class="w-full    py-3      px-4   rounded-xl   font-extrabold    text-base
+border-2 cursor-pointer transition ${
+                        active
+                          ?       'bg-white          border-[#2E7D5B]       text-[#1E5A40]
+hover:bg-[#EAF5EF]'
+                          :       'bg-[#2E7D5B]          border-[#2E7D5B]          text-white
+hover:bg-[#1E5A40]'
+                   }"
+               >
+                   ${active ? '동의 철회하기' : '동의 허용하기'}
+               </button>
+             </div>
+        `;
+    }
+
+
+    // [2] 추억 사진 선택 및 업로드 화면 (사실적 필름 사진 4종)
+    function renderPhotoView() {
+        const coreOk = hasCoreConsents();
+        return `
+             <div class="space-y-7">
+               <div class="flex flex-col sm:flex-row sm:items-end justify-between
+gap-4">
+               <div>
+                 <span class="text-sm font-extrabold text-[#2E7D5B]">STEP 2 · 추
+억 사진 고르기</span>
+                 <h1 class="text-3xl font-extrabold text-gray-900 mt-1">이야기 나
+누고 싶은 추억 사진을 골라주세요</h1>
+                 <p class="text-lg text-gray-600 mt-1">
+                     준비된 사실적인 필름 톤 추억 사진 4장 중 하나를 누르거나, 내 사
+진을 직접 올릴 수 있습니다.
+                 </p>
+               </div>
+               <label class="btn-warm px-6 py-3.5 text-lg inline-flex items-center
+justify-center gap-2 cursor-pointer shrink-0">
+                 <span>          내 사진 올리기 (5MB↓)</span>
+                 <input        type="file"   accept="image/jpeg,image/png,image/webp"
+onchange="handlePhotoUpload(event)" class="hidden" />
+               </label>
+          </div>
+
+
+          ${
+               !coreOk
+                 ?       `<div      class="p-5        rounded-2xl   bg-red-50     border-2
+border-red-300 text-red-900 font-bold">
+                        현재 [기록 저장 동의] 또는 [AI 처리 동의]가 꺼져 있습니다.
+                        <button onclick="navigateTo('home')" class="underline ml-2
+text-red-950 cursor-pointer">동의 화면으로 이동</button>
+                     </div>`
+                 : ''
+          }
+
+
+          <!-- 사실적 필름 톤 추억 사진 4종 그리드 -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+               ${SAMPLE_PHOTOS.map(
+                 (item) => `
+                     <div        class="senior-card      overflow-hidden   flex    flex-col
+justify-between group">
+                        <div>
+                              <div class="relative bg-stone-900 overflow-hidden">
+                                   <canvas
+                                     width="640"
+                                     height="380"
+                                     data-sample-id="${item.id}"
+                                     class="w-full    h-64     sm:h-72    object-cover     block
+group-hover:scale-[1.02] transition duration-300"
+                                   ></canvas>
+                                   <span     class="absolute      top-3   left-3     bg-black/65
+text-white text-sm font-bold px-3 py-1 rounded-full backdrop-blur-xs">
+                                     ${item.tag}
+                                   </span>
+                              </div>
+                              <div class="p-6 space-y-2">
+                                   <h2               class="text-2xl               font-extrabold
+text-gray-900">${escapeHtml(item.title)}</h2>
+                                   <p                                          class="text-base
+text-gray-600">${escapeHtml(item.caption)}</p>
+                              </div>
+                            </div>
+                            <div class="px-6 pb-6">
+                              <button
+                                   onclick="startSessionWithSample('${item.id}')"
+                                   ${!coreOk ? 'disabled' : ''}
+                                   class="btn-primary w-full py-4 text-xl"
+                              >
+                                   이 사진으로 회상 대화 시작 →
+                              </button>
+                            </div>
+                          </div>
+                      `
+                 ).join('')}
+               </div>
+             </div>
+        `;
+    }
+    // [3] 회상·복약·몸상태 대화 화면 (마이크 UI 시뮬레이션 + 3턴 회상 + 약·몸 상
+태 직접 질문)
+    function renderSessionView() {
+      const session = getActiveSession();
+      if (!session) {
+            return `
+                 <div     class="senior-card   p-8   text-center   space-y-5   max-w-2xl
+mx-auto">
+                   <h1 class="text-3xl font-extrabold text-gray-900">아직 선택된 추억
+사진이 없어요</h1>
+                   <p class="text-lg text-gray-600">먼저 추억 사진을 고르신 뒤 정담이와
+회상 대화를 시작해 보세요.</p>
+                   <button onclick="navigateTo('photo')" class="btn-primary px-7 py-4
+text-xl">
+                        추억 사진 고르러 가기 →
+                   </button>
+                 </div>
+            `;
+      }
+
+
+      const stageBadgeMap = {
+            recall_1: '회상 대화 1 / 3 턴 (사진 기억 떠올리기)',
+            recall_2: '회상 대화 2 / 3 턴 (느낌·장면 이어가기)',
+            recall_3: '회상 대화 3 / 3 턴 (마무리 기억 나누기)',
+            ask_medication: '건강 체크 ① · 정담이가 약 복용 여부 여쭤보는 중',
+            ask_condition: '건강 체크 ② · 정담이가 오늘 몸 상태 여쭤보는 중',
+            completed: '3턴 회상 & 약·몸 상태 대화 완료'
+      };
+
+
+      const micOn = state.voiceSim.micActive;
+
+
+      return `
+            <div class="space-y-6">
+                 <!-- 상단 단계 안내 바 -->
+                 <div class="senior-card p-5 flex flex-col lg:flex-row lg:items-center
+lg:justify-between gap-4">
+                   <div class="space-y-1">
+              <div class="flex flex-wrap items-center gap-2">
+                   <span class="bg-[#2E7D5B] text-white text-sm font-extrabold
+px-3 py-1 rounded-full">
+                        ${stageBadgeMap[session.stage] || '대화 진행 중'}
+                   </span>
+                   <span class="text-sm font-bold text-gray-600">
+                        선택 사진: <strong>${escapeHtml(session.photoTitle)}</strong>
+· ${escapeHtml(session.dateLabel)}
+                   </span>
+              </div>
+              <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900">
+                   정담이와 추억 & 오늘 건강 이야기
+              </h1>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="navigateTo('photo')" class="btn-secondary px-4
+py-2.5 text-base">
+                   다른 사진 고르기
+              </button>
+              ${
+                   session.stage === 'completed'
+                        ?         `<button         onclick="navigateTo('summary')"
+class="btn-primary px-5 py-2.5 text-base">요약 보기 →</button>`
+                        : ''
+              }
+            </div>
+          </div>
+
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <!-- 좌측: 선택된 추억 사진 + 음성 마이크 UI 시뮬레이션 카드 -->
+            <div class="lg:col-span-5 space-y-5">
+              <div class="senior-card overflow-hidden">
+                   ${
+                        session.photoSource === 'upload' && session.photoDataUrl
+                            ?         `<img           src="${session.photoDataUrl}"
+alt="${escapeHtml(session.photoTitle)}" class="w-full h-60 object-cover block" />`
+                            :     `<canvas        width="600"          height="360"
+data-sample-id="${session.sampleId || 'sample_sea_sunset'}" class="w-full h-60
+object-cover block"></canvas>`
+                 }
+                 <div class="p-4 bg-[#FAF7F2] border-t border-[#E5DEC9]">
+                      <div class="text-sm font-bold text-gray-500">회상 중인 사진
+</div>
+                      <div                   class="text-xl                 font-extrabold
+text-gray-900">${escapeHtml(session.photoTitle)}</div>
+                 </div>
+               </div>
+
+
+               <!-- 음성 대화 마이크 UI 시뮬레이션 카드 -->
+               <div        class="senior-card     p-5    bg-gradient-to-b      from-white
+to-orange-50/50 border-2 ${micOn ? 'border-[#E06D3B]' : 'border-[#E5DEC9]'}
+space-y-4">
+                 <div class="flex items-center justify-between gap-2">
+                      <span class="text-xs font-extrabold px-2.5 py-1 rounded-full
+bg-orange-100 text-orange-900">
+                          시연용 음성 마이크 UI
+                      </span>
+                      <span class="text-xs font-bold text-gray-500">실제 앱 음성 대
+화 시뮬레이션</span>
+                 </div>
+
+
+                 <div class="flex items-center gap-4">
+                      <button
+                          onclick="toggleVoiceMicSim()"
+                          aria-label="음성 마이크 전환"
+                          class="w-16      h-16     rounded-full    flex      items-center
+justify-center text-3xl shrink-0 transition cursor-pointer ${
+                               micOn
+                                ? 'bg-[#E06D3B] text-white mic-active-ring'
+                                : 'bg-gray-200 text-gray-600'
+                          }"
+                      >
+
+
+                      </button>
+                     <!-- 실시간 음성 파형 애니메이션 -->
+                     <div     class="flex-1        bg-white   border       border-orange-200
+rounded-2xl px-4 py-3 flex items-center justify-between gap-3">
+                       <div          class="flex       items-center        gap-1.5       h-10"
+aria-hidden="true">
+                            <div     class="wave-bar     ${micOn       ?    ''   :   'paused'}"
+style="animation-delay: 0s;"></div>
+                            <div     class="wave-bar     ${micOn       ?    ''   :   'paused'}"
+style="animation-delay: 0.15s;"></div>
+                            <div     class="wave-bar     ${micOn       ?    ''   :   'paused'}"
+style="animation-delay: 0.3s;"></div>
+                            <div     class="wave-bar     ${micOn       ?    ''   :   'paused'}"
+style="animation-delay: 0.45s;"></div>
+                            <div     class="wave-bar     ${micOn       ?    ''   :   'paused'}"
+style="animation-delay: 0.2s;"></div>
+                            <div     class="wave-bar     ${micOn       ?    ''   :   'paused'}"
+style="animation-delay: 0.35s;"></div>
+                       </div>
+                       <div class="text-right">
+                            <div      class="text-sm      font-extrabold         ${micOn     ?
+ 'text-[#B85226]' : 'text-gray-500'}">
+                              ${micOn ? '음성 듣는 중' : '마이크 꺼짐'}
+                            </div>
+                            <div class="text-xs text-gray-600">말씀하듯 아래 입력창에
+치세요</div>
+                       </div>
+                     </div>
+                 </div>
+
+
+                 <div class="text-sm          font-medium text-gray-700 bg-white/90
+px-3.5 py-2.5 rounded-xl border border-orange-100">
+                     ${escapeHtml(state.voiceSim.lastSpokenLabel)}
+                 </div>
+              </div>
+            </div>
+            <!-- 우측: 대화창 + 원터치 시연 버튼 + 음성 입력창 -->
+            <div        class="lg:col-span-7           senior-card   p-5   sm:p-6     flex    flex-col
+justify-between space-y-5 min-h-[520px]">
+                 <div         id="chat-message-list"          class="space-y-4      max-h-[430px]
+overflow-y-auto pr-1">
+                      ${session.messages
+                        .map((m) => {
+                             const isAssistant = m.role === 'assistant';
+                             return `
+                                  <div class="flex flex-col ${isAssistant ? 'items-start' :
+'items-end'}">
+                                    <span         class="text-xs     font-bold      mb-1         px-2
+ ${isAssistant ? 'text-[#1E5A40]' : 'text-[#B85226]'}">
+                                      ${isAssistant ? '      정담이 (음성 안내)' : '                어르신 말
+씀'} · ${escapeHtml(m.tag || '')}
+                                    </span>
+                                    <div       class="max-w-[90%]     rounded-3xl      px-5      py-4
+text-lg sm:text-xl leading-relaxed shadow-xs ${
+                                      isAssistant
+                                           ?      'bg-[#EAF5EF]       text-gray-900          border-2
+border-[#C5E3D3] rounded-tl-md'
+                                           :     'bg-[#FFF1EA]       text-gray-900           border-2
+border-[#FBD3BE] rounded-tr-md font-medium'
+                                    }">
+                                      ${escapeHtml(m.content)}
+                                    </div>
+                                  </div>
+                             `;
+                        })
+                        .join('')}
+                 </div>
+
+
+                 ${
+                      session.stage !== 'completed'
+                        ? `
+                             <div class="border-t-2 border-[#E5DEC9] pt-4 space-y-3">
+                                  <!-- 발표 시연용 빠른 답변 버튼 -->
+                         ${renderQuickDemoButtons(session.stage)}
+
+
+                         <div class="flex flex-col sm:flex-row gap-3">
+                           <input
+                                id="voice-answer-input"
+                                type="text"
+                                placeholder="음성 대화 시뮬레이션: 어르신 말씀을 여기
+에 입력하세요..."
+
+
+onkeydown="if(event.key==='Enter'){event.preventDefault();submitVoiceTurn();}"
+                                class="flex-1   px-4    py-4   rounded-2xl     border-2
+border-gray-300 bg-white text-lg focus:outline-none focus:border-[#2E7D5B]"
+                           />
+                           <button onclick="submitVoiceTurn()" class="btn-primary
+px-7 py-4 text-lg shrink-0">
+                                말씀 전송 →
+                           </button>
+                         </div>
+                       </div>
+                   `
+                   : `
+                       <div class="border-t-2 border-[#E5DEC9] pt-5 flex flex-col
+sm:flex-row     items-center       justify-between     gap-4   bg-[#EAF5EF]/50      p-4
+rounded-2xl">
+                         <div>
+                           <div class="font-extrabold text-xl text-[#1E5A40]">오늘
+회상 및 건강 질문이 모두 끝났어요!</div>
+                           <div class="text-base text-gray-700">활동 요약 화면과
+보호자 요약 화면에서 결과를 확인해 보세요.</div>
+                         </div>
+                         <div class="flex gap-3 shrink-0">
+                           <button                     onclick="navigateTo('summary')"
+class="btn-primary px-5 py-3 text-base">
+                                활동 요약 보기
+                           </button>
+                           <button                     onclick="navigateTo('caregiver')"
+class="btn-warm px-5 py-3 text-base">
+                                           보호자 화면 보기
+                                      </button>
+                                    </div>
+                                  </div>
+                              `
+                       }
+                     </div>
+                   </div>
+              </div>
+         `;
+     }
+
+
+     function renderQuickDemoButtons(stage) {
+         if (stage === 'recall_1') {
+              return `
+                   <div class="flex flex-wrap items-center gap-2 text-sm">
+                     <span class="font-bold text-gray-500">시연 빠른 입력:</span>
+                     <button onclick="quickFillAndSend('옛날에 가족들이랑 함께 나들이 갔
+던        기억이               나네.')"          class="px-3   py-1.5   rounded-xl   bg-stone-100
+hover:bg-stone-200 text-gray-800 font-medium cursor-pointer">
+                       "가족 나들이 기억이 나네"
+                     </button>
+                     <button onclick="quickFillAndSend('바람이 살랑불던 그 시절 풍경이
+참 좋았어.')" class="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200
+text-gray-800 font-medium cursor-pointer">
+                       "그 시절 풍경이 좋았어"
+                     </button>
+                   </div>
+              `;
+         }
+         if (stage === 'recall_2') {
+              return `
+                   <div class="flex flex-wrap items-center gap-2 text-sm">
+                     <span class="font-bold text-gray-500">시연 빠른 입력:</span>
+                     <button onclick="quickFillAndSend('햇살도 따뜻하고 마음까지 넉넉해
+지는            기분이었어.')"                class="px-3       py-1.5   rounded-xl   bg-stone-100
+hover:bg-stone-200 text-gray-800 font-medium cursor-pointer">
+                   "마음까지 넉넉해졌어"
+                 </button>
+               </div>
+          `;
+      }
+      if (stage === 'recall_3') {
+          return `
+               <div class="flex flex-wrap items-center gap-2 text-sm">
+                 <span class="font-bold text-gray-500">시연 빠른 입력:</span>
+                 <button onclick="quickFillAndSend('오랜만에 기분 좋은 추억을 꺼내
+보니        참       반갑네.')"        class="px-3     py-1.5    rounded-xl    bg-stone-100
+hover:bg-stone-200 text-gray-800 font-medium cursor-pointer">
+                   "좋은 추억 꺼내니 반갑네"
+                 </button>
+               </div>
+          `;
+      }
+      if (stage === 'ask_medication') {
+          return `
+               <div class="flex flex-wrap items-center gap-2 text-sm">
+                 <span class="font-bold text-gray-500">복약 답변 시연:</span>
+                 <button onclick="quickFillAndSend('네, 아침에 약 잘 챙겨 먹었어요.')"
+class="px-3       py-1.5     rounded-xl    bg-emerald-50   border   border-emerald-200
+hover:bg-emerald-100 text-emerald-900 font-bold cursor-pointer">
+                   "네, 아침에 약 먹었어요"
+                 </button>
+                 <button onclick="quickFillAndSend('아직 약을 못 먹었어. 깜빡했네.')"
+class="px-3       py-1.5      rounded-xl    bg-amber-50    border    border-amber-200
+hover:bg-amber-100 text-amber-900 font-bold cursor-pointer">
+                   "아직 약을 못 먹었어"
+                 </button>
+               </div>
+          `;
+      }
+      if (stage === 'ask_condition') {
+          return `
+               <div class="flex flex-wrap items-center gap-2 text-sm">
+                   <span class="font-bold text-gray-500">몸 상태 답변 시연 (붉은색/초록
+색 테스트):</span>
+                   <button onclick="quickFillAndSend('오늘 몸도 가볍고 아픈 곳 없이 아
+주       괜찮아.')"            class="px-3   py-1.5     rounded-xl   bg-emerald-100       border
+border-emerald-300               hover:bg-emerald-200       text-emerald-950      font-bold
+cursor-pointer">
+                           "아픈 곳 없이 괜찮아" (초록)
+                   </button>
+                   <button onclick="quickFillAndSend('아침부터 머리가 너무 아프고 속이
+어지러워.')" class="px-3 py-1.5 rounded-xl bg-red-100 border border-red-300
+hover:bg-red-200 text-red-950 font-bold cursor-pointer">
+                           "머리가 아프고 어지러워" (붉은 응급)
+                   </button>
+                 </div>
+            `;
+        }
+        return '';
+    }
+
+
+    // [4] 활동 요약 및 기록 목록 화면
+    function renderSummaryView() {
+        const session = getActiveSession();
+        const             hasDistress    =        session   &&     session.summary        ?
+ Boolean(session.summary.has_health_distress) : false;
+
+
+        return `
+            <div class="space-y-7">
+                 <div class="flex flex-col sm:flex-row sm:items-end justify-between
+gap-4">
+                   <div>
+                     <span class="text-sm font-extrabold text-[#2E7D5B]">STEP 4 · 회
+상 활동 요약 및 기록</span>
+                     <h1 class="text-3xl font-extrabold text-gray-900 mt-1">어르신 회
+상·복약·몸 상태 요약</h1>
+                   </div>
+                   <button       onclick="navigateTo('photo')"   class="btn-primary    px-6
+py-3.5 text-lg shrink-0">
+                + 새 회상 대화 시작
+               </button>
+          </div>
+
+
+          ${
+               session && session.summary
+                ? `
+                   <section class="senior-card p-6 sm:p-8 space-y-6 border-2 ${
+                      hasDistress        ?       'border-red-400       bg-red-50/30'      :
+'border-emerald-400 bg-emerald-50/25'
+                   }">
+                      <div class="flex flex-wrap items-center justify-between gap-3
+border-b border-gray-200 pb-4">
+                         <div>
+                           <span                   class="text-sm                 font-bold
+text-gray-500">${escapeHtml(session.dateLabel)}                        ·               사진:
+${escapeHtml(session.photoTitle)}</span>
+                           <h2 class="text-2xl font-extrabold text-gray-900 mt-0.5">
+오늘의 활동 요약 카드</h2>
+                         </div>
+                         <span       class="px-4       py-1.5      rounded-full    text-sm
+font-extrabold ${
+                           hasDistress
+                                ? 'bg-red-600 text-white'
+                                : 'bg-emerald-600 text-white'
+                         }">
+                           ${hasDistress ? '       몸 상태 불편 언급 있음' : '             불편 언급
+없음 · 양호'}
+                         </span>
+                      </div>
+
+
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                         <div       class="p-4      rounded-2xl       bg-white      border
+border-[#E5DEC9]">
+                           <div class="text-sm font-bold text-gray-500">회상 대화 참
+여</div>
+                           <div      class="text-2xl     font-extrabold      text-gray-900
+mt-1">${session.summary.participation_count} / 3 턴 완료</div>
+                       </div>
+                       <div          class="p-4        rounded-2xl        bg-white     border
+border-[#E5DEC9]">
+                            <div class="text-sm font-bold text-gray-500">약 복용 답변
+</div>
+                            <div       class="text-lg      font-extrabold        text-gray-900
+mt-1">${escapeHtml(session.checkin.medication_raw || '기록 없음')}</div>
+                       </div>
+                       <div          class="p-4        rounded-2xl        bg-white     border
+ ${hasDistress   ?      'border-red-300            bg-red-50'       :     'border-emerald-300
+bg-emerald-50'}">
+                            <div      class="text-sm       font-bold        ${hasDistress    ?
+ 'text-red-800' : 'text-emerald-800'}">몸 상태 답변</div>
+                            <div     class="text-lg      font-extrabold      ${hasDistress   ?
+ 'text-red-950' : 'text-emerald-950'} mt-1">
+                              ${escapeHtml(session.checkin.condition_raw || '기록 없
+음')}
+                            </div>
+                       </div>
+                     </div>
+
+
+                     <div          class="p-5         rounded-2xl       bg-white       border
+border-[#E5DEC9] space-y-2">
+                       <div class="text-sm font-extrabold text-[#1E5A40]">회상 활
+동 요약</div>
+                       <p                       class="text-lg                   text-gray-800
+leading-relaxed">${escapeHtml(session.summary.activity_summary)}</p>
+                       <div class="flex flex-wrap gap-2 pt-2">
+                            ${(session.summary.recall_keywords || [])
+                              .map(
+                                   (kw) =>
+                                     `<span class="px-3 py-1 rounded-full bg-[#EAF5EF]
+text-[#1E5A40] text-sm font-bold"># ${escapeHtml(kw)}</span>`
+                              )
+                              .join('')}
+                       </div>
+                      </div>
+
+
+                      <div class="p-5 rounded-2xl border-2 ${
+                        hasDistress        ?       'bg-red-100/80       border-red-400
+ text-red-950' : 'bg-emerald-100/70 border-emerald-400 text-emerald-950'
+                      } space-y-1">
+                        <div class="text-base font-extrabold">
+                             ${hasDistress ? '⚠건강·불편 언급 메모 (응급 주의 참고)' : '
+✓ 건강·불편 언급 메모 (특이 이상 언급 없음)'}
+                        </div>
+                        <p                                             class="text-base
+font-medium">${escapeHtml(session.summary.health_mention_note)}</p>
+                      </div>
+                    </section>
+                `
+                : `
+                    <div class="senior-card p-7 text-center space-y-3">
+                      <p class="text-lg text-gray-700">선택된 세션이 아직 완료되지
+않았거나 요약이 없습니다.</p>
+                      <button      onclick="navigateTo('session')"   class="btn-primary
+px-6 py-3 text-base">대화 화면으로 이동</button>
+                    </div>
+                `
+          }
+
+
+          <!-- 저장된 전체 기록 목록 -->
+          <section class="senior-card p-6 space-y-4">
+              <h2 class="text-2xl font-extrabold text-gray-900">저장된 기록 목록
+(${state.sessions.length}건)</h2>
+              <div class="space-y-3">
+                ${state.sessions
+                    .map((s) => {
+                      const         distressed      =       Boolean(s.checkin        &&
+s.checkin.has_health_distress);
+                      return `
+                        <div class="p-4 rounded-2xl border-2 ${
+                             distressed   ?      'border-red-300     bg-red-50/40'    :
+'border-emerald-200 bg-emerald-50/30'
+                     } flex flex-col sm:flex-row sm:items-center justify-between
+gap-4">
+                       <div class="space-y-1">
+                         <div class="flex flex-wrap items-center gap-2">
+                           <span      class="px-2.5    py-0.5    rounded-full   text-xs
+font-extrabold ${
+                                distressed    ?       'bg-red-600      text-white'    :
+'bg-emerald-600 text-white'
+                           }">
+                                ${distressed ? '몸 불편 언급' : '양호'}
+                           </span>
+                           <span                                 class="font-extrabold
+text-gray-900">${escapeHtml(s.photoTitle)}</span>
+                           <span             class="text-sm           text-gray-500">·
+${escapeHtml(s.dateLabel)}</span>
+                         </div>
+                         <p class="text-base text-gray-700">
+                           ${escapeHtml((s.summary                                   &&
+s.summary.activity_summary) || '대화 진행 중')}
+                         </p>
+                       </div>
+                       <div class="flex items-center gap-2 shrink-0">
+                         <button              onclick="selectSessionAndGo('${s.id}',
+'session')" class="btn-secondary px-4 py-2 text-sm">
+                           대화 보기
+                         </button>
+                         <button              onclick="selectSessionAndGo('${s.id}',
+'caregiver')" class="btn-primary px-4 py-2 text-sm">
+                           보호자 요약
+                         </button>
+                         <button      onclick="deleteSession('${s.id}')"   class="px-3
+py-2   rounded-xl   border-2     border-red-200   text-red-700      font-bold   text-sm
+hover:bg-red-50 cursor-pointer">
+                           삭제
+                         </button>
+                       </div>
+                                     </div>
+                                `;
+                           })
+                           .join('')}
+                    </div>
+                  </section>
+             </div>
+        `;
+    }
+
+
+    // [5] 보호자 요약 화면 (P2 Projection: 몸이 안좋음 -> 붉은색 응급 표시, 이상
+없음 -> 초록색 표시)
+    function renderCaregiverView() {
+        if (!state.consents.caregiver_sharing) {
+             return `
+                  <div class="senior-card p-8 max-w-2xl mx-auto text-center space-y-5
+border-2 border-amber-300">
+                    <span class="inline-block bg-amber-100 text-amber-900 text-sm
+font-extrabold px-3.5 py-1 rounded-full">
+                      공유 동의 미활성
+                    </span>
+                    <h1 class="text-3xl font-extrabold text-gray-900">보호자 요약 공유가
+꺼져 있습니다</h1>
+                    <p class="text-lg text-gray-700">
+                      어르신이 [보호자 요약 공유 동의]를 허용한 경우에만 요약 정보를 확인
+할 수 있습니다. (원본 사진·대화 전문은 보호자에게 노출되지 않습니다.)
+                    </p>
+                    <button onclick="navigateTo('home')" class="btn-primary px-7 py-4
+text-xl">
+                      동의 설정으로 이동 →
+                    </button>
+                  </div>
+             `;
+        }
+
+
+        const        completedSessions        =   state.sessions.filter((s)   =>   s.stage   ===
+'completed' && s.summary);
+      const             anyDistress          =          completedSessions.some((s)        =>
+s.summary.has_health_distress);
+
+
+      return `
+         <div class="space-y-7">
+           <!-- 상단 상태 배너: 몸이 안좋음(붉은색 응급 강조) vs 이상 없음(초록색
+안심 강조) -->
+           <section           class="rounded-3xl      p-6     sm:p-8   border-4   shadow-md
+transition ${
+                anyDistress
+                  ? 'bg-red-600 text-white border-red-800'
+                  : 'bg-emerald-600 text-white border-emerald-800'
+           }">
+                <div           class="flex       flex-col      lg:flex-row    lg:items-center
+lg:justify-between gap-4">
+                  <div class="space-y-2">
+                       <div class="inline-flex items-center gap-2 bg-white/20 px-4
+py-1 rounded-full text-sm font-extrabold tracking-wide">
+                         <span>${anyDistress ? '            응급 · 신체 불편 언급 감지' : '         안
+심 · 특이 통증·불편 언급 없음'}</span>
+                       </div>
+                       <h1 class="text-3xl sm:text-4xl font-extrabold leading-tight">
+                         ${
+                              anyDistress
+                                ? '어르신께서 몸이 안 좋거나 불편하다고 말씀하셨습니다'
+                                : '어르신 오늘 몸 상태가 양호합니다 (아픈 곳 언급 없음)'
+                         }
+                       </h1>
+                       <p class="text-lg text-white/95">
+                         ${
+                              anyDistress
+                                ? '대화 중 통증·어지러움·불편 증상 표현이 확인되었습니다.
+보호자 확인 및 필요 시 1899-9988·119·보건소/치매안심센터 연계를 권장합니다.'
+                                : '회상 대화 및 복약·몸 상태 질문에서 통증이나 신체 불편 언
+급이 없었습니다. (본 요약은 참고용이며 의학적 진단이 아닙니다.)'
+                         }
+                       </p>
+                 </div>
+                 <div     class="bg-white/15      rounded-2xl     p-4   text-sm      font-bold
+shrink-0 space-y-1">
+                   <div>보호자 열람 범위: 요약·복약·몸상태만 제공</div>
+                   <div>원본 사진·대화 전문: 비공개 보호</div>
+                 </div>
+            </div>
+          </section>
+
+
+          <!-- 완료 세션별 요약 카드 (각 카드도 붉은색/초록색 명확 구분) -->
+          <section class="space-y-5">
+            <h2 class="text-2xl font-extrabold text-gray-900">보호자 확인용 활동
+요약 (${completedSessions.length}건)</h2>
+
+
+            ${
+                 completedSessions.length === 0
+                   ? `<div class="senior-card p-7 text-center text-gray-600">완료된
+회상·건강 세션이 아직 없습니다. 대화를 완료해 보세요!</div>`
+                   : completedSessions
+                          .map((s) => {
+                            const isRed = Boolean(s.summary.has_health_distress);
+                            return `
+                              <article     class="rounded-3xl     p-6       sm:p-7   border-2
+shadow-sm space-y-4 ${
+                                isRed
+                                    ? 'bg-red-50 border-red-500 text-red-950'
+                                    :         'bg-emerald-50            border-emerald-500
+text-emerald-950'
+                              }">
+                                <div         class="flex        flex-wrap        items-center
+justify-between gap-2 border-b ${
+                                    isRed ? 'border-red-200' : 'border-emerald-200'
+                                } pb-3">
+                                    <div class="flex items-center gap-3">
+                                        <span class="px-3.5 py-1 rounded-full text-sm
+font-extrabold text-white ${
+                                         isRed ? 'bg-red-600' : 'bg-emerald-600'
+                                }">
+                                    ${isRed ? '     응급 주의 · 몸 불편 언급' : '                 정
+상 · 불편 언급 없음'}
+                                </span>
+                                <span             class="text-xl          font-extrabold
+text-gray-900">${escapeHtml(s.photoTitle)}</span>
+                             </div>
+                             <span                class="text-sm                 font-bold
+text-gray-600">${escapeHtml(s.dateLabel)}</span>
+                           </div>
+
+
+                           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                             <div class="p-4 rounded-2xl bg-white/90 border
+ ${isRed ? 'border-red-200' : 'border-emerald-200'} space-y-1">
+                                <div           class="text-sm             font-extrabold
+text-gray-500">회상 활동 요약</div>
+                                <p      class="text-base     sm:text-lg       font-medium
+text-gray-900">${escapeHtml(s.summary.activity_summary)}</p>
+                             </div>
+                             <div class="p-4 rounded-2xl bg-white/90 border
+ ${isRed    ?    'border-red-300        bg-red-100/60'       :     'border-emerald-300
+bg-emerald-100/60'} space-y-1">
+                                <div     class="text-sm     font-extrabold     ${isRed   ?
+ 'text-red-800' : 'text-emerald-800'}">
+                                    ${isRed ? '     몸 상태 불편 내용' : '               몸 상태
+확인 결과'}
+                                </div>
+                                <p       class="text-base        sm:text-lg      font-bold
+ ${isRed ? 'text-red-950' : 'text-emerald-950'}">
+                                    ${escapeHtml(s.summary.health_mention_note)}
+                                </p>
+                                <p class="text-sm text-gray-700 pt-1">
+                                    ·                      복약                        응답:
+<strong>${escapeHtml(s.checkin.medication_raw || '기록 없음')}</strong><br/>
+                                    ·             몸                상태                응답:
+<strong>${escapeHtml(s.checkin.condition_raw || '기록 없음')}</strong>
+                                </p>
+                                          </div>
+                                        </div>
+
+
+                                        <div class="flex flex-wrap gap-2">
+                                          ${(s.summary.recall_keywords || [])
+                                             .map(
+                                                 (k) =>
+                                                   `<span class="px-3 py-1 rounded-full text-sm
+font-bold bg-white border ${
+                                                     isRed ? 'border-red-300 text-red-900' :
+'border-emerald-300 text-emerald-900'
+                                                   }">#${escapeHtml(k)}</span>`
+                                             )
+                                             .join('')}
+                                        </div>
+                                      </article>
+                                 `;
+                            })
+                            .join('')
+                 }
+               </section>
+             </div>
+        `;
+   }
+
+
+   //
+===========================================================
+==============
+   // 6. 설정 모달, 샘플 데이터, 토스트 및 유틸리티
+   //
+===========================================================
+==============
+   function openSettingsModal() {
+        const modal = document.getElementById('settings-modal');
+        const keyInput = document.getElementById('input-gemini-key');
+        const fallbackToggle = document.getElementById('toggle-force-fallback');
+        const countEl = document.getElementById('modal-session-count');
+        if (keyInput) keyInput.value = state.settings.geminiApiKey || '';
+        if                (fallbackToggle)        fallbackToggle.checked           =
+Boolean(state.settings.forceFallback);
+        if (countEl) countEl.textContent = `${state.sessions.length}개`;
+        if (modal) modal.classList.remove('hidden');
+    }
+
+
+    function closeSettingsModal() {
+        const modal = document.getElementById('settings-modal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+
+    function saveSettingsFromModal() {
+        const keyInput = document.getElementById('input-gemini-key');
+        const fallbackToggle = document.getElementById('toggle-force-fallback');
+        state.settings.geminiApiKey = keyInput ? keyInput.value.trim() : '';
+        state.settings.forceFallback          =            fallbackToggle          ?
+ Boolean(fallbackToggle.checked) : false;
+        saveState();
+        closeSettingsModal();
+        showToast('AI 연결 및 시연 설정이 저장되었습니다.', 'success');
+        render();
+    }
+
+
+    function seedDemoSessions() {
+        const redDemo = buildSampleCompletedSession({
+             id: 'sess-demo-red-' + Date.now(),
+             dateLabel: '오늘 오후 2:10',
+             photoTitle: '바닷가 노을 산책',
+             photoSource: 'sample',
+             sampleId: 'sample_sea_sunset',
+             photoDataUrl: null,
+             answers: [
+                  '노을 지는 바닷가에 갔던 기억이 나네.',
+                  '파도 소리가 참 시원했어.',
+                  '가족들이랑 걸었던 날이 기억나.'
+             ],
+          medicationStatus: 'taken',
+          medicationRaw: '네, 아침 약은 먹었어요.',
+          conditionStatus: 'unwell',
+          conditionRaw: '오늘 아침부터 머리가 너무 아프고 어지러워서 힘들어.',
+          hasHealthDistress: true,
+          distressSummary: '오늘 아침부터 머리가 너무 아프고 어지러워서 힘들어.',
+          keywords: ['바닷가 노을 산책', '파도', '어지러움', '두통'],
+          activitySummary: '바닷가 노을 산책 사진을 보며 파도 소리와 나들이 기억을
+3턴 동안 나누셨습니다.',
+          healthMentionNote: '[불편 언급] 오늘 아침부터 머리가 너무 아프고 어지러
+워서 힘들어.',
+          summarySource: 'fallback'
+    });
+
+
+    const greenDemo = buildSampleCompletedSession({
+          id: 'sess-demo-green-' + (Date.now() + 1),
+          dateLabel: '어제 오후 4:20',
+          photoTitle: '명절 가족 상차림',
+          photoSource: 'sample',
+          sampleId: 'sample_holiday_table',
+          photoDataUrl: null,
+          answers: [
+               '따뜻한 밥상 차려놓고 모였던 생각이 나네.',
+               '음식 냄새도 좋고 분위기가 참 포근했어.',
+               '다 같이 웃으면서 이야기했던 게 좋아.'
+          ],
+          medicationStatus: 'taken',
+          medicationRaw: '네, 제시간에 약 잘 먹었어요.',
+          conditionStatus: 'good',
+          conditionRaw: '아픈 곳 없이 아주 좋고 컨디션이 좋아요.',
+          hasHealthDistress: false,
+          distressSummary: null,
+          keywords: ['명절 가족 상차림', '가족', '양호'],
+          activitySummary: '명절 가족 상차림 사진을 통해 따뜻한 밥상과 가족 기억을
+회상하셨습니다.',
+          healthMentionNote: '[불편 없음] 아픈 곳 없이 아주 좋고 컨디션이 좋아요.',
+          summarySource: 'fallback'
+         });
+
+
+         state.sessions.unshift(redDemo, greenDemo);
+         state.activeSessionId = redDemo.id;
+         saveState();
+         closeSettingsModal();
+         showToast('응급(붉은색) 및 양호(초록색) 시연 샘플 기록이 추가되었습니다.',
+'info');
+         render();
+     }
+
+
+     function clearAllLocalData() {
+         localStorage.removeItem(STORAGE_KEY);
+         state = createDefaultState();
+         state.sessions = [];
+         state.activeSessionId = null;
+         saveState();
+         closeSettingsModal();
+         showToast('모든 로컬 기록이 초기화되었습니다.', 'info');
+         render();
+     }
+
+
+     function showToast(message, type = 'info') {
+         const container = document.getElementById('toast-container');
+         if (!container) return;
+
+
+         const colorMap = {
+               success: 'bg-[#1E5A40] text-white border-[#2E7D5B]',
+               error: 'bg-red-700 text-white border-red-900',
+               warn: 'bg-[#B85226] text-white border-[#E06D3B]',
+               info: 'bg-gray-900 text-white border-gray-700'
+         };
+
+
+         const toast = document.createElement('div');
+         toast.className = `pointer-events-auto px-5 py-3.5 rounded-2xl border-2
+shadow-xl text-base font-bold transition transform ${
+               colorMap[type] || colorMap.info
+    }`;
+    toast.textContent = message;
+    container.appendChild(toast);
+
+
+    setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateY(8px)';
+          setTimeout(() => toast.remove(), 220);
+    }, 3400);
+}
+
+
+function formatKoreanDateTime(d) {
+    const month = d.getMonth() + 1;
+    const day = d.getDate();
+    const hour = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    return `${month}월 ${day}일 ${hour}:${min}`;
+}
+
+
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+}
+
+
+function scrollChatToBottom() {
+    setTimeout(() => {
+          const list = document.getElementById('chat-message-list');
+          if (list) list.scrollTop = list.scrollHeight;
+    }, 50);
+}
+
+
+// 초기 렌더링
+   render();
+ </script>
+</body>
+</html>
+
